@@ -3,13 +3,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='bg-helper',
-    version='0.1.0',
+    version='0.1.1',
     description='Common CLI background helpers',
     author='Ken',
     author_email='kenjyco@gmail.com',
     license='MIT',
     url='https://github.com/kenjyco/bg-helper',
-    download_url='https://github.com/kenjyco/bg-helper/tarball/v0.1.0',
+    download_url='https://github.com/kenjyco/bg-helper/tarball/v0.1.1',
     packages=find_packages(),
     include_package_data=True,
     package_dir={'': '.'},
