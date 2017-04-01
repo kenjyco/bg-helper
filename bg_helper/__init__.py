@@ -105,10 +105,14 @@ def call_func(func, *args, **kwargs):
 
 
 class SimpleBackgroundTask(object):
-    """Run a single command in a background thread
+    """Run a single command in a background thread and log any exceptions
 
-    Just initialize with the function and any args/kwargs. The background
-    thread is started right away and any exceptions raised will be logged
+    You can pass a callable object, or a string representing a shell command
+
+    - if passing a callable, you may also pass in the args and kwargs
+        - since the callable will be executed by the `call_func` function,
+          the `logger` and `verbose` keyword arguments (if passed in) will be
+          used by `call_func`
     """
     def __init__(self, func, *args, **kwargs):
         """

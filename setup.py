@@ -1,10 +1,14 @@
 from setuptools import setup, find_packages
 
 
+with open('README.rst', 'r') as fp:
+    long_description = fp.read()
+
 setup(
     name='bg-helper',
     version='0.1.1',
     description='Common CLI background helpers',
+    long_description=long_description,
     author='Ken',
     author_email='kenjyco@gmail.com',
     license='MIT',
