@@ -1,10 +1,10 @@
-#### Install
+## Install
 
 ```
-% pip install bg-helper
+% pip3 install bg-helper
 ```
 
-#### Usage
+## Usage
 
 Use `bg_helper.call_func` when you need to call a function (with arbitrary
 `*args` and `**kwargs`) and log any uncaught exceptions. A dict is returned with
