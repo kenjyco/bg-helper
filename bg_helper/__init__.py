@@ -5,7 +5,7 @@ import logging
 import socket
 import time
 import os.path
-from subprocess import call
+import subprocess
 from functools import partial
 
 
@@ -25,8 +25,17 @@ logger.addHandler(console_handler)
 
 
 def run(cmd):
-    """Run a shell command"""
-    return call(cmd, shell=True)
+    """Run a shell command and return the exit status"""
+    return subprocess.call(cmd, shell=True)
+
+
+def run_output(cmd):
+    """Run a shell command and return output or error"""
+    try:
+        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+    except subprocess.CalledProcessError as e:
+        output = e.output
+    return output.decode('utf-8').strip()
 
 
 def run_or_die(cmd):
