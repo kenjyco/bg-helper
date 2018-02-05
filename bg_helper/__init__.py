@@ -29,12 +29,14 @@ def run(cmd):
     return subprocess.call(cmd, shell=True)
 
 
-def run_output(cmd):
+def run_output(cmd, timeout=None):
     """Run a shell command and return output or error"""
     try:
-        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, timeout=timeout)
     except subprocess.CalledProcessError as e:
         output = e.output
+    except subprocess.TimeoutExpired:
+        output = 'Timeout of {} reached when running: {}'.format(timeout, cmd).encode('utf-8')
     return output.decode('utf-8').strip()
 
 
