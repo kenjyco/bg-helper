@@ -9,7 +9,7 @@ import subprocess
 from functools import partial
 
 
-LOGFILE = os.path.abspath('log--bg-helper.log')
+LOGFILE = os.path.abspath(os.path.expanduser('~/logs/bg-helper.log'))
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 file_handler = logging.FileHandler(LOGFILE, mode='a')
