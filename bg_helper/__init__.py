@@ -6,22 +6,11 @@ import socket
 import time
 import os.path
 import subprocess
+import fs_helper as fh
 from functools import partial
 
 
-LOGFILE = os.path.abspath(os.path.expanduser('~/logs/bg-helper.log'))
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-file_handler = logging.FileHandler(LOGFILE, mode='a')
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(logging.Formatter(
-    '%(asctime)s - %(levelname)s - %(funcName)s: %(message)s'
-))
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-console_handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s'))
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+logger = fh.get_logger(__name__)
 
 
 def run(cmd):
