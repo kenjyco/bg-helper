@@ -1,10 +1,8 @@
 import threading
 import sys
 import traceback
-import logging
 import socket
 import time
-import os.path
 import subprocess
 import fs_helper as fh
 from functools import partial
