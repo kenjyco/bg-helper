@@ -38,14 +38,18 @@ def run_output(cmd, timeout=None, show=False):
     return output.decode('utf-8').strip()
 
 
-def run_or_die(cmd, show=False):
+def run_or_die(cmd, exception=True, show=False):
     """Run a shell command; if non-success, raise Exception or exit the system
 
+    - exception: if True, raise an exception (otherwise, do system exit)
     - show: if True, show the command before executing
     """
     ret_code = run(cmd, show=show)
     if ret_code != 0:
-        sys.exit(ret_code)
+        if exception:
+            raise Exception
+        else:
+            sys.exit(ret_code)
 
 
 def get_logger_filenames(logger):
