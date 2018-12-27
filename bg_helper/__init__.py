@@ -11,13 +11,24 @@ from functools import partial
 logger = fh.get_logger(__name__)
 
 
-def run(cmd):
-    """Run a shell command and return the exit status"""
+def run(cmd, show=False):
+    """Run a shell command and return the exit status
+
+    - show: if True, show the command before executing
+    """
+    if show:
+        print('\n$ {}'.format(cmd))
     return subprocess.call(cmd, shell=True)
 
 
-def run_output(cmd, timeout=None):
-    """Run a shell command and return output or error"""
+def run_output(cmd, timeout=None, show=False):
+    """Run a shell command and return output or error
+
+    - timeout: number of seconds to wait before stopping cmd
+    - show: if True, show the command before executing
+    """
+    if show:
+        print('\n$ {}'.format(cmd))
     try:
         output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, timeout=timeout)
     except subprocess.CalledProcessError as e:
@@ -27,9 +38,12 @@ def run_output(cmd, timeout=None):
     return output.decode('utf-8').strip()
 
 
-def run_or_die(cmd):
-    """Run a shell command or exit the system"""
-    ret_code = run(cmd)
+def run_or_die(cmd, show=False):
+    """Run a shell command; if non-success, raise Exception or exit the system
+
+    - show: if True, show the command before executing
+    """
+    ret_code = run(cmd, show=show)
     if ret_code != 0:
         sys.exit(ret_code)
 
