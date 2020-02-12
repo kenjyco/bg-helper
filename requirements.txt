@@ -1,5 +1,1 @@
 fs-helper
-
-# For development
-ipython
-pdbpp
