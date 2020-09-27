@@ -150,3 +150,6 @@ class SimpleBackgroundTask(object):
 
     def run(self):
         call_func(self._func, *self._args, **self._kwargs)
+
+
+from bg_helper import tools
