@@ -2,10 +2,14 @@ __all__ = [
     'docker_ok', 'docker_stop', 'docker_start_or_run', 'docker_container_id',
     'docker_container_inspect', 'docker_container_config', 'docker_container_env_vars',
     'docker_shell', 'docker_cleanup_volumes',
+    'docker_redis_start', 'docker_redis_cli', 'docker_mongo_start',
+    'docker_mongo_cli', 'docker_postgres_start', 'docker_postgres_cli',
+    'docker_mysql_start', 'docker_mysql_cli'
 ]
 
 
 import json
+import os
 import bg_helper as bh
 import input_helper as ih
 
@@ -235,3 +239,227 @@ def docker_cleanup_volumes(exception=False, show=False):
         exception=exception,
         show=show
     )
+
+
+def docker_redis_start(name, version='6-alpine', port=6300, data_dir=None, aof=True,
+                       rm=False, exception=False, show=False, force=True):
+    """Start or create redis container
+
+    - name: name for the container
+    - version: redis image version
+    - port: port to map into the container
+    - data_dir: directory that will map to container's /data
+    - aof: if True, use appendonly.aof file
+        - specify absolute path or subdirectory of current directory
+    - rm: if True, automatically delete the container when it exits
+    - exception: if True and docker has an error response, raise an exception
+    - show: if True, show the docker commands and output
+    - force: if True, stop the container and remove it before re-creating
+
+    See: https://hub.docker.com/_/redis for image versions ("supported tags")
+    """
+    if data_dir:
+        if not data_dir.startswith(os.path.sep):
+            data_dir = os.path.join(os.getcwd(), data_dir)
+        volumes = '{}:/data'.format(data_dir)
+    else:
+        volumes = ''
+    if aof:
+        command = 'redis-server --appendonly yes'
+    else:
+        command = ''
+    return docker_start_or_run(
+        name,
+        image='redis:{}'.format(version),
+        command=command,
+        ports='{}:6379'.format(port),
+        volumes=volumes,
+        detach=True,
+        rm=rm,
+        exception=exception,
+        show=show,
+        force=force
+    )
+
+
+def docker_redis_cli(name, show=False):
+    """Start redis-cli on an existing container (will be started if stopped)
+
+    - show: if True, show the docker command and output
+    """
+    return docker_shell(name, shell='redis-cli', show=show)
+
+
+def docker_mongo_start(name, version='4.4', port=27000, username='mongouser',
+                       password='some.pass', data_dir=None, rm=False,
+                       exception=False, show=False, force=True):
+    """Start or create mongod container
+
+    - name: name for the container
+    - version: mongo image version
+    - port: port to map into the container
+    - username: username to set for root user on first run
+    - password: password to set for root user on first run
+    - data_dir: directory that will map to contariner's /data/db
+        - specify absolute path or subdirectory of current directory
+    - rm: if True, automatically delete the container when it exits
+    - exception: if True and docker has an error response, raise an exception
+    - show: if True, show the docker commands and output
+    - force: if True, stop the container and remove it before re-creating
+
+    See: https://hub.docker.com/_/mongo for image versions ("supported tags")
+    """
+    env_vars = {
+        'MONGO_INITDB_ROOT_USERNAME': username,
+        'MONGO_INITDB_ROOT_PASSWORD': password,
+    }
+    if data_dir:
+        if not data_dir.startswith(os.path.sep):
+            data_dir = os.path.join(os.getcwd(), data_dir)
+        volumes = '{}:/data/db'.format(data_dir)
+    else:
+        volumes = ''
+    return docker_start_or_run(
+        name,
+        image='mongo:{}'.format(version),
+        ports='{}:27017'.format(port),
+        volumes=volumes,
+        env_vars=env_vars,
+        detach=True,
+        rm=rm,
+        exception=exception,
+        show=show,
+        force=force
+    )
+
+
+def docker_mongo_cli(name, show=False):
+    """Start mongo on an existing container (will be started if stopped)
+
+    - show: if True, show the docker command and output
+    """
+    env_vars = docker_container_env_vars(name)
+    username = env_vars.get('MONGO_INITDB_ROOT_USERNAME')
+    password = env_vars.get('MONGO_INITDB_ROOT_PASSWORD')
+    cmd = 'mongo --username {} --password {}'.format(username, password)
+    return docker_shell(name, shell=cmd, show=show)
+
+
+def docker_postgres_start(name, version='13-alpine', port=5400, username='postgresuser',
+                          password='some.pass', db='postgresdb', data_dir=None,
+                          rm=False, exception=False, show=False, force=True):
+    """Start or create postgres container
+
+    - name: name for the container
+    - version: postgres image version
+    - port: port to map into the container
+    - username: username to set as superuser on first run
+    - password: password to set for superuser on first run
+    - db: name of default database
+    - data_dir: directory that will map to contariner's /var/lib/postgresql/data
+        - specify absolute path or subdirectory of current directory
+    - rm: if True, automatically delete the container when it exits
+    - exception: if True and docker has an error response, raise an exception
+    - show: if True, show the docker commands and output
+    - force: if True, stop the container and remove it before re-creating
+
+    See: https://hub.docker.com/_/postgres for image versions ("supported tags")
+    """
+    env_vars = {
+        'POSTGRES_USER': username,
+        'POSTGRES_PASSWORD': password,
+        'POSTGRES_DB': db,
+    }
+    if data_dir:
+        if not data_dir.startswith(os.path.sep):
+            data_dir = os.path.join(os.getcwd(), data_dir)
+        volumes = '{}:/var/lib/postgresql/data'.format(data_dir)
+    else:
+        volumes = ''
+    return docker_start_or_run(
+        name,
+        image='postgres:{}'.format(version),
+        ports='{}:5432'.format(port),
+        volumes=volumes,
+        env_vars=env_vars,
+        detach=True,
+        rm=rm,
+        exception=exception,
+        show=show,
+        force=force
+    )
+
+
+def docker_postgres_cli(name, show=False):
+    """Start psql on an existing container (will be started if stopped)
+
+    - show: if True, show the docker command and output
+    """
+    env_vars = docker_container_env_vars(name)
+    username = env_vars.get('POSTGRES_USER')
+    password = env_vars.get('POSTGRES_PASSWORD')
+    database = env_vars.get('POSTGRES_DB')
+    cmd = 'psql -U {} -d {}'.format(username, database)
+    pw_var = {'PGPASSWORD': password}
+    return docker_shell(name, shell=cmd, env_vars=pw_var, show=show)
+
+
+def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass',
+                       username='mysqluser', password='some.pass', db='mysqldb',
+                       data_dir=None, rm=False, exception=False, show=False, force=True):
+    """Start or create postgres container
+
+    - name: name for the container
+    - version: mysql image version
+    - port: port to map into the container
+    - root_password: password to set for the root superuser account
+    - username: username to set as superuser on first run
+    - password: password to set for superuser on first run
+    - db: name of default database
+    - data_dir: directory that will map to contariner's /var/lib/mysql
+        - specify absolute path or subdirectory of current directory
+    - rm: if True, automatically delete the container when it exits
+    - exception: if True and docker has an error response, raise an exception
+    - show: if True, show the docker commands and output
+    - force: if True, stop the container and remove it before re-creating
+
+    See: https://hub.docker.com/_/mysql for image versions ("supported tags")
+    """
+    env_vars = {
+        'MYSQL_USER': username,
+        'MYSQL_ROOT_PASSWORD': root_password,
+        'MYSQL_PASSWORD': password,
+        'MYSQL_DATABASE': db,
+    }
+    if data_dir:
+        if not data_dir.startswith(os.path.sep):
+            data_dir = os.path.join(os.getcwd(), data_dir)
+        volumes = '{}:/var/lib/mysql'.format(data_dir)
+    else:
+        volumes = ''
+    return docker_start_or_run(
+        name,
+        image='mysql:{}'.format(version),
+        ports='{}:3306'.format(port),
+        volumes=volumes,
+        env_vars=env_vars,
+        detach=True,
+        rm=rm,
+        exception=exception,
+        show=show,
+        force=force
+    )
+
+
+def docker_mysql_cli(name, show=False):
+    """Start mysql on an existing container (will be started if stopped)
+
+    - show: if True, show the docker command and output
+    """
+    env_vars = docker_container_env_vars(name)
+    username = env_vars.get('MYSQL_USER')
+    password = env_vars.get('MYSQL_PASSWORD')
+    database = env_vars.get('MYSQL_DATABASE')
+    cmd = 'mysql -u {} -D {}'.format(username, database)
+    pw_var = {'MYSQL_PWD': password}
+    return docker_shell(name, shell=cmd, env_vars=pw_var, show=show)
