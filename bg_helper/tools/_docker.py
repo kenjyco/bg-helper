@@ -249,8 +249,8 @@ def docker_redis_start(name, version='6-alpine', port=6300, data_dir=None, aof=T
     - version: redis image version
     - port: port to map into the container
     - data_dir: directory that will map to container's /data
-    - aof: if True, use appendonly.aof file
         - specify absolute path or subdirectory of current directory
+    - aof: if True, use appendonly.aof file
     - rm: if True, automatically delete the container when it exits
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker commands and output
@@ -300,7 +300,7 @@ def docker_mongo_start(name, version='4.4', port=27000, username='mongouser',
     - port: port to map into the container
     - username: username to set for root user on first run
     - password: password to set for root user on first run
-    - data_dir: directory that will map to contariner's /data/db
+    - data_dir: directory that will map to container's /data/db
         - specify absolute path or subdirectory of current directory
     - rm: if True, automatically delete the container when it exits
     - exception: if True and docker has an error response, raise an exception
@@ -356,7 +356,7 @@ def docker_postgres_start(name, version='13-alpine', port=5400, username='postgr
     - username: username to set as superuser on first run
     - password: password to set for superuser on first run
     - db: name of default database
-    - data_dir: directory that will map to contariner's /var/lib/postgresql/data
+    - data_dir: directory that will map to container's /var/lib/postgresql/data
         - specify absolute path or subdirectory of current directory
     - rm: if True, automatically delete the container when it exits
     - exception: if True and docker has an error response, raise an exception
@@ -416,7 +416,7 @@ def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass'
     - username: username to set as superuser on first run
     - password: password to set for superuser on first run
     - db: name of default database
-    - data_dir: directory that will map to contariner's /var/lib/mysql
+    - data_dir: directory that will map to container's /var/lib/mysql
         - specify absolute path or subdirectory of current directory
     - rm: if True, automatically delete the container when it exits
     - exception: if True and docker has an error response, raise an exception
