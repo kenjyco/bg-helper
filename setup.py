@@ -33,5 +33,5 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Intended Audience :: Developers',
     ],
-    keywords=['background', 'helper']
+    keywords=['background', 'helper', 'shell', 'docker', 'redis', 'mongodb', 'postgres', 'mysql']
 )
