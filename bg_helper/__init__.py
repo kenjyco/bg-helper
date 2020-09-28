@@ -62,12 +62,32 @@ def get_logger_filenames(logger):
 
 
 def call_func(func, *args, **kwargs):
-    """Call a function and pass *args and **kwargs to it; return a dict
+    """Call a func with arbitrary args/kwargs and capture uncaught exceptions
 
     The following kwargs will be popped and used internally:
 
     - logger: logger object to use
-    - verbose: if True (default), print line separator and tracebacks when caught
+    - verbose: if True (default), print line separator & tracebacks when caught
+
+    The returned dict will always have at least the following keys:
+
+    - `func_name`
+    - `args`
+    - `kwargs`
+    - `status` (ok/error)
+
+    If the function call was successful, there will also be a `value` key. If
+    there was an uncaught exception, the following additional keys will be
+    provided in the return dict
+
+    - `error_type`
+    - `error_value`
+    - `fqdn`
+    - `func_doc`
+    - `func_module`
+    - `time_epoch`
+    - `time_string`
+    - `traceback_string`
     """
     _logger = kwargs.pop('logger', logger)
     verbose = kwargs.pop('verbose', True)
