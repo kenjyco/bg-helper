@@ -39,6 +39,8 @@ def docker_stop(name, kill=False, signal='KILL', rm=False, exception=False,
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker commands and output
     """
+    if not docker_ok(exception=exception):
+        return False
     if kill is False:
         cmd = 'docker stop {}'.format(name)
     else:
@@ -80,6 +82,8 @@ def docker_start_or_run(name, image='', command='', detach=True, rm=False,
     - show: if True, show the docker commands and output
     - force: if True, stop the container and remove it before re-creating
     """
+    if not docker_ok(exception=exception):
+        return False
     if force is True:
         if not image:
             message = 'The "image" arg is required since force is True'
@@ -149,6 +153,8 @@ def docker_start_or_run(name, image='', command='', detach=True, rm=False,
 
 def docker_container_id(name):
     """Return the container ID for running container name"""
+    if not docker_ok():
+        return ''
     cmd = "docker ps | grep '\\b{}\\b$'".format(name) + " | awk '{print $1}'"
     return bh.run_output(cmd)
 
@@ -160,6 +166,8 @@ def docker_container_inspect(name, exception=False, show=False):
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker command and output
     """
+    if not docker_ok(exception=exception):
+        return []
     cmd = 'docker container inspect {}'.format(name)
     output = bh.run_output(cmd, show=show)
     if not output.startswith('[]\nError:'):
@@ -169,6 +177,7 @@ def docker_container_inspect(name, exception=False, show=False):
             raise Exception(output)
         elif show is True:
             print(output)
+        return []
 
 
 def docker_container_config(name, exception=False, show=False):
@@ -208,6 +217,8 @@ def docker_shell(name, shell='sh', env_vars={}, show=False):
     - env_vars: a dict of environment variables and values to set
     - show: if True, show the docker command and output
     """
+    if not docker_ok():
+        return False
     cmd_parts = []
     cmd_parts.append('docker exec --tty --interactive')
     if env_vars:
