@@ -98,7 +98,7 @@ def docker_start_or_run(name, image='', command='', detach=True, rm=False,
         output = bh.run_output('docker start {}'.format(name), show=show)
         if show is True:
             print(output)
-        if "Error response from daemon:" not in output:
+        if "Error response from daemon:" not in output and "error during connect" not in output:
             return True
         else:
             if not image:
