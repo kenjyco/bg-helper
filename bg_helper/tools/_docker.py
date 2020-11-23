@@ -4,7 +4,8 @@ __all__ = [
     'docker_shell', 'docker_cleanup_volumes',
     'docker_redis_start', 'docker_redis_cli', 'docker_mongo_start',
     'docker_mongo_cli', 'docker_postgres_start', 'docker_postgres_cli',
-    'docker_mysql_start', 'docker_mysql_cli'
+    'docker_mysql_start', 'docker_mysql_cli',
+    'docker_alpine_start', 'docker_ubuntu_start', 'docker_fedora_start'
 ]
 
 
@@ -474,3 +475,96 @@ def docker_mysql_cli(name, show=False):
     cmd = 'mysql -u {} -D {}'.format(username, database)
     pw_var = {'MYSQL_PWD': password}
     return docker_shell(name, shell=cmd, env_vars=pw_var, show=show)
+
+
+def docker_alpine_start(name, version='3.12', command='sleep 86400', detach=True,
+                        interactive=False, rm=False, exception=False,
+                        show=False, force=False):
+    """Start or create alpine container
+
+    - name: name for the container
+    - version: alpine image version
+    - command: command to run (default is sleep for a day)
+    - detach: if True, run comtainer in the background
+        - if interactive is True, detach will be set to False
+    - interactive: if True, keep STDIN open and allocate pseudo-TTY
+    - rm: if True, automatically delete the container when it exits
+    - exception: if True and docker has an error response, raise an exception
+    - show: if True, show the docker commands and output
+    - force: if True, stop the container and remove it before re-creating
+
+    See: https://hub.docker.com/_/alpine for image versions ("supported tags")
+    """
+    return docker_start_or_run(
+        name,
+        image='alpine:{}'.format(version),
+        command='sleep 86400',
+        interactive=interactive,
+        detach=detach,
+        rm=rm,
+        exception=exception,
+        show=show,
+        force=force
+    )
+
+
+def docker_ubuntu_start(name, version='18.04', command='sleep 86400', detach=True,
+                        interactive=False, rm=False, exception=False,
+                        show=False, force=False):
+    """Start or create ubuntu container
+
+    - name: name for the container
+    - version: ubuntu image version
+    - command: command to run (default is sleep for a day)
+    - detach: if True, run comtainer in the background
+        - if interactive is True, detach will be set to False
+    - interactive: if True, keep STDIN open and allocate pseudo-TTY
+    - rm: if True, automatically delete the container when it exits
+    - exception: if True and docker has an error response, raise an exception
+    - show: if True, show the docker commands and output
+    - force: if True, stop the container and remove it before re-creating
+
+    See: https://hub.docker.com/_/ubuntu for image versions ("supported tags")
+    """
+    return docker_start_or_run(
+        name,
+        image='ubuntu:{}'.format(version),
+        command='sleep 86400',
+        interactive=interactive,
+        detach=detach,
+        rm=rm,
+        exception=exception,
+        show=show,
+        force=force
+    )
+
+
+def docker_fedora_start(name, version='33', command='sleep 86400', detach=True,
+                        interactive=False, rm=False, exception=False,
+                        show=False, force=False):
+    """Start or create fedora container
+
+    - name: name for the container
+    - version: fedora image version
+    - command: command to run (default is sleep for a day)
+    - detach: if True, run comtainer in the background
+        - if interactive is True, detach will be set to False
+    - interactive: if True, keep STDIN open and allocate pseudo-TTY
+    - rm: if True, automatically delete the container when it exits
+    - exception: if True and docker has an error response, raise an exception
+    - show: if True, show the docker commands and output
+    - force: if True, stop the container and remove it before re-creating
+
+    See: https://hub.docker.com/_/fedora for image versions ("supported tags")
+    """
+    return docker_start_or_run(
+        name,
+        image='fedora:{}'.format(version),
+        command='sleep 86400',
+        interactive=interactive,
+        detach=detach,
+        rm=rm,
+        exception=exception,
+        show=show,
+        force=force
+    )
