@@ -498,7 +498,7 @@ def docker_alpine_start(name, version='3.12', command='sleep 86400', detach=True
     return docker_start_or_run(
         name,
         image='alpine:{}'.format(version),
-        command='sleep 86400',
+        command=command,
         interactive=interactive,
         detach=detach,
         rm=rm,
@@ -529,7 +529,7 @@ def docker_ubuntu_start(name, version='18.04', command='sleep 86400', detach=Tru
     return docker_start_or_run(
         name,
         image='ubuntu:{}'.format(version),
-        command='sleep 86400',
+        command=command,
         interactive=interactive,
         detach=detach,
         rm=rm,
@@ -560,7 +560,7 @@ def docker_fedora_start(name, version='33', command='sleep 86400', detach=True,
     return docker_start_or_run(
         name,
         image='fedora:{}'.format(version),
-        command='sleep 86400',
+        command=command,
         interactive=interactive,
         detach=detach,
         rm=rm,
