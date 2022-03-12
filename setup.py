@@ -10,7 +10,7 @@ with open('requirements.txt', 'r') as fp:
 setup(
     name='bg-helper',
     version='0.1.11',
-    description='Common CLI background helpers',
+    description='Common CLI background helpers and docker helpers',
     long_description=long_description,
     author='Ken',
     author_email='kenjyco@gmail.com',
