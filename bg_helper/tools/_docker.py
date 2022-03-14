@@ -433,7 +433,7 @@ def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass'
     """Start or create mysql container
 
     - name: name for the container
-    - version: mysql image version
+    - version: mysql image version (or mysql/mysql-server for Mac M1)
     - port: port to map into the container
     - root_password: password to set for the root superuser account
     - username: username to set as superuser on first run
@@ -461,11 +461,20 @@ def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass'
         volumes = '{}:/var/lib/mysql'.format(data_dir)
     else:
         volumes = ''
+
+    image_name = 'mysql'
+    platform = ''
+    uname_a = bh.run_output('uname -a')
+    if 'Darwin' in uname_a and 'arm64' in uname_a:
+        image_name = 'mysql/mysql-server'
+        platform = 'linux/amd64'
+
     return docker_start_or_run(
         name,
-        image='mysql:{}'.format(version),
+        image='{}:{}'.format(image_name, version),
         ports='{}:3306'.format(port),
         volumes=volumes,
+        platform=platform,
         env_vars=env_vars,
         interactive=interactive,
         detach=True,
