@@ -1,10 +1,10 @@
 __all__ = [
     'docker_ok', 'docker_stop', 'docker_start_or_run', 'docker_container_id',
     'docker_container_inspect', 'docker_container_config', 'docker_container_env_vars',
-    'docker_shell', 'docker_cleanup_volumes',
+    'docker_logs', 'docker_exec', 'docker_exec_wait', 'docker_shell', 'docker_cleanup_volumes',
     'docker_redis_start', 'docker_redis_cli', 'docker_mongo_start',
-    'docker_mongo_cli', 'docker_postgres_start', 'docker_postgres_cli',
-    'docker_mysql_start', 'docker_mysql_cli',
+    'docker_mongo_cli', 'docker_postgres_start', 'docker_postgres_cli', 'docker_postgres_wait',
+    'docker_mysql_start', 'docker_mysql_cli', 'docker_mysql_wait',
     'docker_alpine_start', 'docker_ubuntu_start', 'docker_fedora_start'
 ]
 
@@ -13,6 +13,7 @@ import json
 import os
 import bg_helper as bh
 import input_helper as ih
+from time import sleep
 
 
 def docker_ok(exception=False):
@@ -213,6 +214,105 @@ def docker_container_env_vars(name, exception=False, show=False):
     return env_vars
 
 
+def docker_logs(name, num_lines=None, follow=False, details=False,
+                since='', until='', timestamps=False, show=False):
+    """Show logs on an existing container
+
+    - name: name of the container
+    - num_lines: number of lines to show from the end of the logs
+    - follow: if True, follow log output
+    - details: if True, show extra details provided to logs
+    - since: show logs since timestamp (iso format or relative)
+    - until: show logs before timestamp (iso format or relative)
+    - timestamps: if True, show timestamps
+    - show: if True, show the docker command and output
+    """
+    if not docker_ok():
+        return False
+    cmd_parts = []
+    cmd_parts.append('docker logs {}'.format(name))
+    if num_lines:
+        cmd_parts.append(' --tail {}'.format(num_lines))
+    if follow:
+        cmd_parts.append(' --follow')
+    if details:
+        cmd_parts.append(' --details')
+    if since:
+        cmd_parts.append(' --since {}'.format(since))
+    if until:
+        cmd_parts.append(' --until {}'.format(until))
+    if timestamps:
+        cmd_parts.append(' --timestamps')
+    cmd = ''.join(cmd_parts)
+
+    if follow:
+        try:
+            return bh.run(cmd, show=show)
+        except KeyboardInterrupt:
+            return
+    else:
+        return bh.run_output(cmd, show=show)
+
+
+def docker_exec(name, command='pwd', output=False, env_vars={}, show=False):
+    """Run shell command on an existing container (will be started if stopped)
+
+    - name: name of the container
+    - command: command to execute
+    - output: If True, return output or error from command
+        - otherwise, return the exit status
+    - env_vars: a dict of environment variables and values to set
+    - show: if True, show the docker command and output
+    """
+    if not docker_ok():
+        return False
+    cmd_parts = []
+    cmd_parts.append('docker exec')
+    if env_vars:
+        for key, value in env_vars.items():
+            cmd_parts.append(' --env {}={}'.format(key, value))
+    cmd_parts.append(' {} {}'.format(name, command))
+    cmd = ''.join(cmd_parts)
+    docker_start_or_run(name, show=show)
+    if output is True:
+        return bh.run_output(cmd, show=show)
+    else:
+        return bh.run(cmd, show=show)
+
+
+def docker_exec_wait(name, command='pwd', sleeptime=2, env_vars={}, show=False):
+    """Wait for a shell command to succeed an existing container (will be started if stopped)
+
+    - name: name of the container
+    - command: command to execute
+    - sleeptime: time to sleep between checks
+    - env_vars: a dict of environment variables and values to set
+    - show: if True, show the docker command and output
+    """
+    if show is False:
+        command += ' &>/dev/null'
+    while True:
+        try:
+            result = docker_exec(
+                name,
+                command=command,
+                output=False,
+                env_vars=env_vars,
+                show=show
+            )
+            if result != 0:
+                if show is True:
+                    print('\n(Exit status was {}; sleeping for {} seconds)'.format(
+                        result,
+                        sleeptime
+                    ))
+                sleep(sleeptime)
+            else:
+                return
+        except KeyboardInterrupt:
+            return
+
+
 def docker_shell(name, shell='sh', env_vars={}, show=False):
     """Start shell on an existing container (will be started if stopped)
 
@@ -367,7 +467,7 @@ def docker_mongo_cli(name, show=False):
 def docker_postgres_start(name, version='13-alpine', port=5400, username='postgresuser',
                           password='some.pass', db='postgresdb', data_dir=None,
                           interactive=False, rm=False, exception=False, show=False,
-                          force=False):
+                          force=False, wait=False, sleeptime=2):
     """Start or create postgres container
 
     - name: name for the container
@@ -383,6 +483,8 @@ def docker_postgres_start(name, version='13-alpine', port=5400, username='postgr
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker commands and output
     - force: if True, stop the container and remove it before re-creating
+    - wait: if True, don't return until mysql is able to accept connections
+    - sleeptime: if wait is True, sleep this number of seconds before checks
 
     See: https://hub.docker.com/_/postgres for image versions ("supported tags")
     """
@@ -397,7 +499,8 @@ def docker_postgres_start(name, version='13-alpine', port=5400, username='postgr
         volumes = '{}:/var/lib/postgresql/data'.format(data_dir)
     else:
         volumes = ''
-    return docker_start_or_run(
+
+    run_result =  docker_start_or_run(
         name,
         image='postgres:{}'.format(version),
         ports='{}:5432'.format(port),
@@ -410,6 +513,10 @@ def docker_postgres_start(name, version='13-alpine', port=5400, username='postgr
         show=show,
         force=force
     )
+
+    if wait is True:
+        docker_postgres_wait(name, sleeptime=sleeptime, show=show)
+    return run_result
 
 
 def docker_postgres_cli(name, show=False):
@@ -426,10 +533,32 @@ def docker_postgres_cli(name, show=False):
     return docker_shell(name, shell=cmd, env_vars=pw_var, show=show)
 
 
+def docker_postgres_wait(name, sleeptime=2, show=False):
+    """Wait for psql an existing container (will be started if stopped)
+
+    - name: name of the container
+    - sleeptime: time to sleep between checks
+    - show: if True, show the docker command and output
+    """
+    env_vars = docker_container_env_vars(name)
+    username = env_vars.get('POSTGRES_USER')
+    password = env_vars.get('POSTGRES_PASSWORD')
+    database = env_vars.get('POSTGRES_DB')
+    cmd = 'psql -U {} -d {} -c "SELECT datname FROM pg_database"'.format(username, database)
+    pw_var = {'PGPASSWORD': password}
+    return docker_exec_wait(
+        name,
+        command=cmd,
+        sleeptime=sleeptime,
+        env_vars=pw_var,
+        show=show
+    )
+
+
 def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass',
                        username='mysqluser', password='some.pass', db='mysqldb',
                        data_dir=None, interactive=False, rm=False, exception=False,
-                       show=False, force=False):
+                       show=False, force=False, wait=False, sleeptime=2):
     """Start or create mysql container
 
     - name: name for the container
@@ -446,6 +575,8 @@ def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass'
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker commands and output
     - force: if True, stop the container and remove it before re-creating
+    - wait: if True, don't return until mysql is able to accept connections
+    - sleeptime: if wait is True, sleep this number of seconds before checks
 
     See: https://hub.docker.com/_/mysql for image versions ("supported tags")
     """
@@ -469,7 +600,7 @@ def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass'
         image_name = 'mysql/mysql-server'
         platform = 'linux/amd64'
 
-    return docker_start_or_run(
+    run_result = docker_start_or_run(
         name,
         image='{}:{}'.format(image_name, version),
         ports='{}:3306'.format(port),
@@ -484,6 +615,10 @@ def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass'
         force=force
     )
 
+    if wait is True:
+        docker_mysql_wait(name, sleeptime=sleeptime, show=show)
+    return run_result
+
 
 def docker_mysql_cli(name, show=False):
     """Start mysql on an existing container (will be started if stopped)
@@ -497,6 +632,28 @@ def docker_mysql_cli(name, show=False):
     cmd = 'mysql -u {} -D {}'.format(username, database)
     pw_var = {'MYSQL_PWD': password}
     return docker_shell(name, shell=cmd, env_vars=pw_var, show=show)
+
+
+def docker_mysql_wait(name, sleeptime=2, show=False):
+    """Wait for mysql an existing container (will be started if stopped)
+
+    - name: name of the container
+    - sleeptime: time to sleep between checks
+    - show: if True, show the docker command and output
+    """
+    env_vars = docker_container_env_vars(name)
+    username = env_vars.get('MYSQL_USER')
+    password = env_vars.get('MYSQL_PASSWORD')
+    database = env_vars.get('MYSQL_DATABASE')
+    cmd = 'mysql -u {} -D {} --execute "SHOW DATABASES"'.format(username, database)
+    pw_var = {'MYSQL_PWD': password}
+    return docker_exec_wait(
+        name,
+        command=cmd,
+        sleeptime=sleeptime,
+        env_vars=pw_var,
+        show=show
+    )
 
 
 def docker_alpine_start(name, version='3.12', command='sleep 86400', detach=True,
