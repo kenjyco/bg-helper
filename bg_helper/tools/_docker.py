@@ -254,7 +254,7 @@ def docker_cleanup_volumes(exception=False, show=False):
 
 
 def docker_redis_start(name, version='6-alpine', port=6300, data_dir=None, aof=True,
-                       rm=False, exception=False, show=False, force=False):
+                       interactive=False, rm=False, exception=False, show=False, force=False):
     """Start or create redis container
 
     - name: name for the container
@@ -263,6 +263,7 @@ def docker_redis_start(name, version='6-alpine', port=6300, data_dir=None, aof=T
     - data_dir: directory that will map to container's /data
         - specify absolute path or subdirectory of current directory
     - aof: if True, use appendonly.aof file
+    - interactive: if True, keep STDIN open and allocate pseudo-TTY
     - rm: if True, automatically delete the container when it exits
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker commands and output
@@ -286,6 +287,7 @@ def docker_redis_start(name, version='6-alpine', port=6300, data_dir=None, aof=T
         command=command,
         ports='{}:6379'.format(port),
         volumes=volumes,
+        interactive=interactive,
         detach=True,
         rm=rm,
         exception=exception,
@@ -303,7 +305,7 @@ def docker_redis_cli(name, show=False):
 
 
 def docker_mongo_start(name, version='4.4', port=27000, username='mongouser',
-                       password='some.pass', data_dir=None, rm=False,
+                       password='some.pass', data_dir=None, interactive=False, rm=False,
                        exception=False, show=False, force=False):
     """Start or create mongo container
 
@@ -314,6 +316,7 @@ def docker_mongo_start(name, version='4.4', port=27000, username='mongouser',
     - password: password to set for root user on first run
     - data_dir: directory that will map to container's /data/db
         - specify absolute path or subdirectory of current directory
+    - interactive: if True, keep STDIN open and allocate pseudo-TTY
     - rm: if True, automatically delete the container when it exits
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker commands and output
@@ -337,6 +340,7 @@ def docker_mongo_start(name, version='4.4', port=27000, username='mongouser',
         ports='{}:27017'.format(port),
         volumes=volumes,
         env_vars=env_vars,
+        interactive=interactive,
         detach=True,
         rm=rm,
         exception=exception,
@@ -359,7 +363,8 @@ def docker_mongo_cli(name, show=False):
 
 def docker_postgres_start(name, version='13-alpine', port=5400, username='postgresuser',
                           password='some.pass', db='postgresdb', data_dir=None,
-                          rm=False, exception=False, show=False, force=False):
+                          interactive=False, rm=False, exception=False, show=False,
+                          force=False):
     """Start or create postgres container
 
     - name: name for the container
@@ -370,6 +375,7 @@ def docker_postgres_start(name, version='13-alpine', port=5400, username='postgr
     - db: name of default database
     - data_dir: directory that will map to container's /var/lib/postgresql/data
         - specify absolute path or subdirectory of current directory
+    - interactive: if True, keep STDIN open and allocate pseudo-TTY
     - rm: if True, automatically delete the container when it exits
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker commands and output
@@ -394,6 +400,7 @@ def docker_postgres_start(name, version='13-alpine', port=5400, username='postgr
         ports='{}:5432'.format(port),
         volumes=volumes,
         env_vars=env_vars,
+        interactive=interactive,
         detach=True,
         rm=rm,
         exception=exception,
@@ -418,8 +425,9 @@ def docker_postgres_cli(name, show=False):
 
 def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass',
                        username='mysqluser', password='some.pass', db='mysqldb',
-                       data_dir=None, rm=False, exception=False, show=False, force=False):
     """Start or create postgres container
+                       data_dir=None, interactive=False, rm=False, exception=False,
+                       show=False, force=False):
 
     - name: name for the container
     - version: mysql image version
@@ -430,6 +438,7 @@ def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass'
     - db: name of default database
     - data_dir: directory that will map to container's /var/lib/mysql
         - specify absolute path or subdirectory of current directory
+    - interactive: if True, keep STDIN open and allocate pseudo-TTY
     - rm: if True, automatically delete the container when it exits
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker commands and output
@@ -455,6 +464,7 @@ def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass'
         ports='{}:3306'.format(port),
         volumes=volumes,
         env_vars=env_vars,
+        interactive=interactive,
         detach=True,
         rm=rm,
         exception=exception,
