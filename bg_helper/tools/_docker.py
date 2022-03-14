@@ -425,9 +425,9 @@ def docker_postgres_cli(name, show=False):
 
 def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass',
                        username='mysqluser', password='some.pass', db='mysqldb',
-    """Start or create postgres container
                        data_dir=None, interactive=False, rm=False, exception=False,
                        show=False, force=False):
+    """Start or create mysql container
 
     - name: name for the container
     - version: mysql image version
