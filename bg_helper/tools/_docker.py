@@ -157,7 +157,10 @@ def docker_start_or_run(name, image='', command='', detach=True, rm=False,
 
 
 def docker_container_id(name):
-    """Return the container ID for running container name"""
+    """Return the container ID for running container name
+
+    - name: name of the container
+    """
     if not docker_ok():
         return ''
     cmd = "docker ps | grep '\\b{}\\b$'".format(name) + " | awk '{print $1}'"
@@ -402,6 +405,7 @@ def docker_redis_start(name, version='6-alpine', port=6300, data_dir=None, aof=T
 def docker_redis_cli(name, show=False):
     """Start redis-cli on an existing container (will be started if stopped)
 
+    - name: name for the container
     - show: if True, show the docker command and output
     """
     return docker_shell(name, shell='redis-cli', show=show)
@@ -455,6 +459,7 @@ def docker_mongo_start(name, version='4.4', port=27000, username='mongouser',
 def docker_mongo_cli(name, show=False):
     """Start mongo on an existing container (will be started if stopped)
 
+    - name: name for the container
     - show: if True, show the docker command and output
     """
     env_vars = docker_container_env_vars(name)
@@ -522,6 +527,7 @@ def docker_postgres_start(name, version='13-alpine', port=5400, username='postgr
 def docker_postgres_cli(name, show=False):
     """Start psql on an existing container (will be started if stopped)
 
+    - name: name for the container
     - show: if True, show the docker command and output
     """
     env_vars = docker_container_env_vars(name)
@@ -623,6 +629,7 @@ def docker_mysql_start(name, version='8.0', port=3300, root_password='root.pass'
 def docker_mysql_cli(name, show=False):
     """Start mysql on an existing container (will be started if stopped)
 
+    - name: name of the container
     - show: if True, show the docker command and output
     """
     env_vars = docker_container_env_vars(name)
