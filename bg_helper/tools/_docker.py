@@ -63,8 +63,8 @@ def docker_stop(name, kill=False, signal='KILL', rm=False, exception=False,
 
 
 def docker_start_or_run(name, image='', command='', detach=True, rm=False,
-                        interactive=False, ports='', volumes='', env_vars={},
-                        exception=False, show=False, force=False):
+                        interactive=False, ports='', volumes='', platform='',
+                        env_vars={}, exception=False, show=False, force=False):
     """Start existing container or create/run container
 
     - name: name for the container
@@ -78,6 +78,7 @@ def docker_start_or_run(name, image='', command='', detach=True, rm=False,
       one of , ; |
     - volumes: string containing {host-path}:{container-path} pairs separated by
       one of , ; |
+    - platform: platform to set if server is multi-platform capable
     - env_vars: a dict of environment variables and values to set
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker commands and output
@@ -125,6 +126,8 @@ def docker_start_or_run(name, image='', command='', detach=True, rm=False,
     if volumes:
         for volume_mapping in ih.string_to_list(volumes):
             cmd_parts.append(' --volume {}'.format(volume_mapping))
+    if platform:
+        cmd_parts.append(' --platform {}'.format(platform))
     if env_vars:
         for key, value in env_vars.items():
             cmd_parts.append(' --env {}={}'.format(key, value))
@@ -143,7 +146,7 @@ def docker_start_or_run(name, image='', command='', detach=True, rm=False,
         output = bh.run_output(cmd, show=show)
         if show is True:
             print(output)
-        if "Error response from daemon:" in output:
+        if "Error response from daemon:" in output or "no matching manifest" in output:
             if exception:
                 raise Exception(output)
             else:
