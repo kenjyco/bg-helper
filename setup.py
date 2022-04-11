@@ -10,7 +10,7 @@ with open('requirements.txt', 'r') as fp:
 setup(
     name='bg-helper',
     version='0.1.13',
-    description='Common CLI background helpers and docker helpers',
+    description='CLI helpers for background tasks (shell), docker (databases), git, and SSH',
     long_description=long_description,
     author='Ken',
     author_email='kenjyco@gmail.com',
@@ -25,13 +25,18 @@ setup(
         '': ['*.ini'],
     },
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3.5',
-        'Topic :: Software Development :: Libraries',
         'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python',
+        'Programming Language :: Unix Shell',
+        'Topic :: Database',
+        'Topic :: Software Development :: Libraries',
+        'Topic :: Utilities',
     ],
-    keywords=['background', 'helper', 'shell', 'docker', 'redis', 'mongodb', 'postgres', 'postgresql', 'mysql']
+    keywords=['background', 'shell', 'git', 'ssh', 'docker', 'redis', 'mongodb', 'postgres', 'postgresql', 'mysql', 'helper', 'kenjyco']
 )
