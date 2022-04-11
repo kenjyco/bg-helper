@@ -284,7 +284,7 @@ def docker_exec(name, command='pwd', output=False, env_vars={}, show=False):
 
 
 def docker_exec_wait(name, command='pwd', sleeptime=2, env_vars={}, show=False):
-    """Wait for a shell command to succeed an existing container (will be started if stopped)
+    """Wait for a shell command to succeed in an existing container (will be started if stopped)
 
     - name: name of the container
     - command: command to execute
