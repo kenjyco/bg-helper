@@ -9,14 +9,14 @@ with open('requirements.txt', 'r') as fp:
 
 setup(
     name='bg-helper',
-    version='0.1.14',
+    version='0.1.15',
     description='CLI helpers for background tasks (shell), docker (databases), git, and SSH',
     long_description=long_description,
     author='Ken',
     author_email='kenjyco@gmail.com',
     license='MIT',
     url='https://github.com/kenjyco/bg-helper',
-    download_url='https://github.com/kenjyco/bg-helper/tarball/v0.1.14',
+    download_url='https://github.com/kenjyco/bg-helper/tarball/v0.1.15',
     packages=find_packages(),
     install_requires=requirements,
     include_package_data=True,
