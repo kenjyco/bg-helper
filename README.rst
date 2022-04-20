@@ -94,6 +94,35 @@ Helper functions in ``bg_helper`` that can be used to:
 Helper functions in ``bg_helper.tools``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+git
+^^^
+
+-  ``ctx_repo_path_root``
+-  ``git_repo_path_root``
+-  ``git_fetch``
+-  ``git_origin_url``
+-  ``git_do``
+-  ``git_current_branch``
+-  ``git_current_tracking_branch``
+-  ``git_last_tag``
+-  ``git_tag_message``
+-  ``git_last_tag_message``
+-  ``git_tags``
+-  ``git_first_commit_id``
+-  ``git_last_commit_id``
+-  ``git_commits_since_last_tag``
+-  ``git_unpushed_commits``
+-  ``git_untracked_files``
+-  ``git_stashlist``
+-  ``git_status``
+-  ``git_info_dict``
+-  ``git_info_string``
+-  ``git_branch_date``
+-  ``git_remote_branches``
+-  ``git_local_branches``
+-  ``git_remote_branches_merged_with``
+-  ``git_local_branches_merged_with``
+
 grep
 ^^^^
 
