@@ -4,52 +4,110 @@ import traceback
 import socket
 import time
 import subprocess
+import uuid
 import fs_helper as fh
 from functools import partial
+from os import remove
 
 
 logger = fh.get_logger(__name__)
 
 
-def run(cmd, show=False):
+def run(cmd, debug=False, timeout=None, exception=False, show=False):
     """Run a shell command and return the exit status
 
+    - cmd: string with shell command
+    - debug: if True, insert breakpoint right before subprocess.call
+    - timeout: number of seconds to wait before stopping cmd
+    - exception: if True, raise Exception if non-zero exit status or TimeoutExpired
     - show: if True, show the command before executing
     """
+    ret_code = 1
     if show:
         print('\n$ {}'.format(cmd))
-    return subprocess.call(cmd, shell=True)
+
+    try:
+        # Annoying that you can't just use an io.StringIO() instance for error_buf
+        error_buffer_path = '/tmp/error-buffer-{}.txt'.format(str(uuid.uuid4()))
+        with open(error_buffer_path, 'w') as error_buf:
+            if debug:
+                breakpoint()
+            ret_code = subprocess.call(cmd, stderr=error_buf, timeout=timeout, shell=True)
+        if exception:
+            with open(error_buffer_path, 'r') as fp:
+                text = fp.read()
+                if text != '':
+                    # This section might grow if more commands write non-errors to stderr
+                    if 'git' in cmd:
+                        if 'fatal:' in text:
+                            raise Exception(text.strip())
+                    else:
+                        raise Exception(text.strip())
+        remove(error_buffer_path)
+    except subprocess.TimeoutExpired as e:
+        if exception:
+            output = 'Timeout of {} reached when running: {}'.format(timeout, cmd)
+            raise Exception(output.strip())
+    return ret_code
 
 
-def run_output(cmd, timeout=None, show=False):
+def run_output(cmd, debug=False, timeout=None, exception=False, show=False):
     """Run a shell command and return output or error
 
+    - cmd: string with shell command
+    - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
+    - exception: if True, raise Exception if CalledProcessError or TimeoutExpired
     - show: if True, show the command before executing
     """
     if show:
         print('\n$ {}'.format(cmd))
     try:
+        if debug:
+            breakpoint()
         output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, timeout=timeout)
     except subprocess.CalledProcessError as e:
         output = e.output
+        if exception:
+            from pprint import pprint
+            pprint(sys.exc_info())
+            raise Exception(output.decode('utf-8').strip())
     except subprocess.TimeoutExpired:
         output = 'Timeout of {} reached when running: {}'.format(timeout, cmd).encode('utf-8')
+        if exception:
+            raise Exception(output.decode('utf-8').strip())
+    if exception:
+        output = output.decode('utf-8').strip()
+        if 'git' in cmd and 'fatal:' in output:
+            raise Exception(output)
+        output = output.encode('utf-8')
+
     return output.decode('utf-8').strip()
 
 
-def run_or_die(cmd, exception=True, show=False):
+def run_or_die(cmd, debug=False, timeout=None, exception=True, show=False):
     """Run a shell command; if non-success, raise Exception or exit the system
 
-    - exception: if True, raise an exception (otherwise, do system exit)
+    - cmd: string with shell command
+    - debug: if True, insert breakpoint right before subprocess.call
+    - timeout: number of seconds to wait before stopping cmd
+    - exception: if True, raise Exception if return code of cmd is non-zero
+        - otherwise, do system exit if return code of cmd is non-zero
     - show: if True, show the command before executing
     """
-    ret_code = run(cmd, show=show)
-    if ret_code != 0:
+    try:
+        ret_code = run(cmd, debug=debug, timeout=timeout, exception=exception, show=show)
+    except:
         if exception:
-            raise Exception
+            raise
         else:
-            sys.exit(ret_code)
+            sys.exit(1)
+    else:
+        if ret_code != 0:
+            if exception:
+                raise Exception
+            else:
+                sys.exit(ret_code)
 
 
 def get_logger_filenames(logger):
