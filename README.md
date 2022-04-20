@@ -89,6 +89,14 @@
 
 ### Helper functions in `bg_helper.tools`
 
+#### grep
+
+- `grep_output`
+
+#### ps
+
+- `ps_output`
+
 #### docker
 
 - `docker_ok`

@@ -94,6 +94,16 @@ Helper functions in ``bg_helper`` that can be used to:
 Helper functions in ``bg_helper.tools``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+grep
+^^^^
+
+-  ``grep_output``
+
+ps
+^^
+
+-  ``ps_output``
+
 docker
 ^^^^^^
 
