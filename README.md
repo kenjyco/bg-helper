@@ -97,6 +97,14 @@
 
 - `ps_output`
 
+#### ssh
+
+- `ssh_to_server`
+- `ssh_pem_files`
+- `ssh_private_key_files`
+- `ssh_configured_hosts`
+- `ssh_determine_aws_user_for_server`
+
 #### docker
 
 - `docker_ok`

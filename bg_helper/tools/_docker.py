@@ -540,7 +540,7 @@ def docker_postgres_cli(name, show=False):
 
 
 def docker_postgres_wait(name, sleeptime=2, show=False):
-    """Wait for psql an existing container (will be started if stopped)
+    """Wait for psql on an existing container (will be started if stopped)
 
     - name: name of the container
     - sleeptime: time to sleep between checks
@@ -642,7 +642,7 @@ def docker_mysql_cli(name, show=False):
 
 
 def docker_mysql_wait(name, sleeptime=2, show=False):
-    """Wait for mysql an existing container (will be started if stopped)
+    """Wait for mysql on an existing container (will be started if stopped)
 
     - name: name of the container
     - sleeptime: time to sleep between checks
