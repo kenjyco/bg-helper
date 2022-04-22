@@ -101,7 +101,7 @@ def git_do(path='', fetch=False, cmd=None, output=False, debug=False,
     - cmd: string with shell command (required)
     - output: if True, capture output of cmd and return it; otherwise return exit status of cmd
     - debug: if True, insert breakpoint right before subprocess.check_output
-    - timeout: number of seconds to wait before stopping cmd (only if output is True)
+    - timeout: number of seconds to wait before stopping cmd
     - exception: if True, raise a ValueError if path is not in a repo
         - also raise Exception if git command has an error
     - show: if True, show the `git` command before executing
