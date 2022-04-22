@@ -122,15 +122,17 @@ def git_origin_url(path=''):
 
     - path: path to git repo, if not using current working directory
     """
+    result = ''
     local_path = git_repo_path_root(path=path)
     if not local_path:
-        return
+        return result
     cmd = 'grep "remote \\"origin\\"" -A 2 {}/.git/config | grep url'.format(local_path)
     output = bh.run_output(cmd)
     match = RX_CONFIG_URL.match(output)
     if match:
-        return match.group(1)
-    return ''
+        result = match.group(1)
+
+    return result
 
 
 def git_current_branch(path='', debug=False, timeout=None, exception=True,
