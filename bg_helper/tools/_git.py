@@ -194,6 +194,7 @@ def git_last_tag(path='', debug=False, timeout=None, exception=True, show=False)
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
     cmd = 'git describe --tags $(git rev-list --tags --max-count=1 2>/dev/null) 2>/dev/null'
     with ctx_repo_path_root(path, **common_kwargs):
+        common_kwargs['exception'] = False
         output = bh.run_output(cmd, **common_kwargs)
         output = '' if 'fatal:' in output else output
 
