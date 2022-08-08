@@ -17,10 +17,11 @@ Helper functions in ``bg_helper`` that can be used to:
 
    ::
 
-      run(cmd, debug=False, timeout=None, exception=False, show=False)
+      run(cmd, stderr_to_stdout=False, debug=False, timeout=None, exception=False, show=False)
           Run a shell command and return the exit status
 
           - cmd: string with shell command
+          - stderr_to_stdout: if True, redirect stderr to stdout
           - debug: if True, insert breakpoint right before subprocess.call
           - timeout: number of seconds to wait before stopping cmd
           - exception: if True, raise Exception if non-zero exit status or TimeoutExpired
@@ -35,10 +36,11 @@ Helper functions in ``bg_helper`` that can be used to:
           - exception: if True, raise Exception if non-zero exit status or TimeoutExpired
           - show: if True, show the command before executing
 
-      run_or_die()
+      run_or_die(cmd, stderr_to_stdout=False, debug=False, timeout=None, exception=False, show=False)
           Run a shell command; if non-success, raise Exception or exit the system
 
           - cmd: string with shell command
+          - stderr_to_stdout: if True, redirect stderr to stdout
           - debug: if True, insert breakpoint right before subprocess.call
           - timeout: number of seconds to wait before stopping cmd
           - exception: if True, raise Exception if non-zero exit status or TimeoutExpired

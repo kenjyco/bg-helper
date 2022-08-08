@@ -13,10 +13,11 @@ from os import remove
 logger = fh.get_logger(__name__)
 
 
-def run(cmd, debug=False, timeout=None, exception=False, show=False):
+def run(cmd, stderr_to_stdout=False, debug=False, timeout=None, exception=False, show=False):
     """Run a shell command and return the exit status
 
     - cmd: string with shell command
+    - stderr_to_stdout: if True, redirect stderr to stdout
     - debug: if True, insert breakpoint right before subprocess.call
     - timeout: number of seconds to wait before stopping cmd
     - exception: if True, raise Exception if non-zero exit status or TimeoutExpired
@@ -27,23 +28,30 @@ def run(cmd, debug=False, timeout=None, exception=False, show=False):
         print('\n$ {}'.format(cmd))
 
     try:
-        # Annoying that you can't just use an io.StringIO() instance for error_buf
-        error_buffer_path = '/tmp/error-buffer-{}.txt'.format(str(uuid.uuid4()))
-        with open(error_buffer_path, 'w') as error_buf:
+        if stderr_to_stdout:
             if debug:
                 breakpoint()
-            ret_code = subprocess.call(cmd, stderr=error_buf, timeout=timeout, shell=True)
-        if exception:
-            with open(error_buffer_path, 'r') as fp:
-                text = fp.read()
-                if text != '':
-                    # This section might grow if more commands write non-errors to stderr
-                    if 'git' in cmd:
-                        if 'fatal:' in text:
+            ret_code = subprocess.call(cmd, stderr=sys.stdout.buffer, timeout=timeout, shell=True)
+            if exception and ret_code != 0:
+                raise Exception("The return code was {} (not 0) for {}".format(ret_code, repr(cmd)))
+        else:
+            # Annoying that you can't just use an io.StringIO() instance for error_buf
+            error_buffer_path = '/tmp/error-buffer-{}.txt'.format(str(uuid.uuid4()))
+            with open(error_buffer_path, 'w') as error_buf:
+                if debug:
+                    breakpoint()
+                ret_code = subprocess.call(cmd, stderr=error_buf, timeout=timeout, shell=True)
+            if exception:
+                with open(error_buffer_path, 'r') as fp:
+                    text = fp.read()
+                    if text != '':
+                        # This section might grow if more commands write non-errors to stderr
+                        if 'git' in cmd:
+                            if 'fatal:' in text:
+                                raise Exception(text.strip())
+                        else:
                             raise Exception(text.strip())
-                    else:
-                        raise Exception(text.strip())
-        remove(error_buffer_path)
+            remove(error_buffer_path)
     except subprocess.TimeoutExpired as e:
         if exception:
             output = 'Timeout of {} reached when running: {}'.format(timeout, cmd)
@@ -85,10 +93,11 @@ def run_output(cmd, debug=False, timeout=None, exception=False, show=False):
     return output.decode('utf-8').strip()
 
 
-def run_or_die(cmd, debug=False, timeout=None, exception=True, show=False):
+def run_or_die(cmd, stderr_to_stdout=False, debug=False, timeout=None, exception=True, show=False):
     """Run a shell command; if non-success, raise Exception or exit the system
 
     - cmd: string with shell command
+    - stderr_to_stdout: if True, redirect stderr to stdout
     - debug: if True, insert breakpoint right before subprocess.call
     - timeout: number of seconds to wait before stopping cmd
     - exception: if True, raise Exception if return code of cmd is non-zero
@@ -96,7 +105,7 @@ def run_or_die(cmd, debug=False, timeout=None, exception=True, show=False):
     - show: if True, show the command before executing
     """
     try:
-        ret_code = run(cmd, debug=debug, timeout=timeout, exception=exception, show=show)
+        ret_code = run(cmd, stderr_to_stdout=stderr_to_stdout, debug=debug, timeout=timeout, exception=exception, show=show)
     except:
         if exception:
             raise
