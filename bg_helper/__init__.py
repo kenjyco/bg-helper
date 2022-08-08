@@ -110,15 +110,6 @@ def run_or_die(cmd, debug=False, timeout=None, exception=True, show=False):
                 sys.exit(ret_code)
 
 
-def get_logger_filenames(logger):
-    """Return the filenames of a logger object"""
-    return [
-        handler.baseFilename
-        for handler in logger.handlers
-        if hasattr(handler, 'baseFilename')
-    ]
-
-
 def call_func(func, *args, **kwargs):
     """Call a func with arbitrary args/kwargs and capture uncaught exceptions
 
@@ -150,7 +141,7 @@ def call_func(func, *args, **kwargs):
     _logger = kwargs.pop('logger', logger)
     verbose = kwargs.pop('verbose', True)
     try:
-        _logfile = get_logger_filenames(_logger)[0]
+        _logfile = fh.get_logger_filenames(_logger)[0]
     except IndexError:
         _logfile = None
 
