@@ -124,6 +124,11 @@
 
 - `grep_output`
 
+#### pip
+
+- `pip_freeze`
+- `pip_install_editable`
+
 #### ps
 
 - `ps_output`
