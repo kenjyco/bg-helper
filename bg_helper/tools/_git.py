@@ -112,12 +112,12 @@ def git_fetch(path='', output=False, debug=False, timeout=None, exception=True,
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
     cmd = 'git fetch --all --prune'
     with ctx_repo_path_root(path, fetch=False, **common_kwargs):
-        output = bh.run_output(cmd, **common_kwargs)
+        cmd_output = bh.run_output(cmd, **common_kwargs)
         if show:
-            print(output)
+            print(cmd_output)
 
     if output:
-        return output
+        return cmd_output
 
 
 def git_do(path='', fetch=False, cmd=None, output=False, debug=False,
