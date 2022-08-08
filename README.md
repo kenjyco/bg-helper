@@ -95,6 +95,7 @@
 
 - `ctx_repo_path_root`
 - `git_repo_path_root`
+- `git_clone`
 - `git_fetch`
 - `git_origin_url`
 - `git_do`

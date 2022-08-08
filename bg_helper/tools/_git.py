@@ -1,6 +1,6 @@
 __all__ = [
-    'ctx_repo_path_root', 'git_repo_path_root', 'git_fetch', 'git_origin_url',
-    'git_do', 'git_current_branch', 'git_current_tracking_branch',
+    'ctx_repo_path_root', 'git_repo_path_root', 'git_clone', 'git_fetch',
+    'git_origin_url', 'git_do', 'git_current_branch', 'git_current_tracking_branch',
     'git_last_tag', 'git_tag_message', 'git_last_tag_message', 'git_tags',
     'git_first_commit_id', 'git_last_commit_id', 'git_commits_since_last_tag',
     'git_unpushed_commits', 'git_untracked_files', 'git_stashlist',
@@ -16,6 +16,7 @@ import input_helper as ih
 from contextlib import contextmanager
 from io import StringIO
 from os import chdir, getcwd
+from os.path import join
 
 
 RX_CONFIG_URL = re.compile('^url\s*=\s*(\S+)$')
@@ -65,6 +66,35 @@ def git_repo_path_root(path='', exception=False):
     if exception and repo_path_root is None:
         raise ValueError('{} is not in a git repo'.format(path))
     return repo_path_root
+
+
+def git_clone(url, path='', name='', recursive=False, debug=False, timeout=None,
+              exception=True, show=False):
+    """Clone a repo
+
+    - url: URL for a git repo
+    - path: path to clone git repo to, if not using current working directory
+    - name: name to clone the repo as, if not using the existing name
+    - recursive: if True, pass --recursive to `git clone`
+    - debug: if True, insert breakpoint right before subprocess.call
+    - timeout: number of seconds to wait before stopping cmd
+    - exception: if True, raise Exception if git command has an error
+    - show: if True, show the `git` command before executing
+    """
+    common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
+    path = path or getcwd()
+    name = name or url.rsplit('/', 1)[-1].replace('.git', '')
+    recursive = '--recursive ' if recursive else ''
+    local_path = join(path, name)
+    if show:
+        common_kwargs['stderr_to_stdout'] = True
+    else:
+        common_kwargs['stderr_to_stdout'] = False
+    cmd = 'git clone {}{} {}'.format(recursive, url, local_path)
+
+    ret_code = bh.run(cmd, **common_kwargs)
+    if ret_code == 0:
+        return local_path
 
 
 def git_fetch(path='', output=False, debug=False, timeout=None, exception=True,
