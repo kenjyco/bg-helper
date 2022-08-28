@@ -14,6 +14,7 @@ def grep_output(output, pattern=None, regex=None, invert=False, extra_pipe=None)
     - pattern: grep pattern string
     - regex: a compiled regular expression (from re.compile)
         - or a sting that can be passed to re.compile
+        - if match groups are used, the group matches will be returned
     - invert: if True, select non-matching items (`grep -v`)
         - only applied when using pattern, not regex
     - extra_pipe: string containing other command(s) to pipe grepped output to
@@ -26,11 +27,17 @@ def grep_output(output, pattern=None, regex=None, invert=False, extra_pipe=None)
         if type(regex) != re.Pattern:
             regex = re.compile(r'{}'.format(regex))
 
-        results = [
-            line
-            for line in re.split('\r?\n', output)
-            if regex.match(line)
-        ]
+        for line in re.split('\r?\n', output):
+            match = regex.match(line)
+            if match:
+                groups = match.groups()
+                if groups:
+                    if len(groups) == 1:
+                        results.append(groups[0])
+                    else:
+                        results.append(groups)
+                else:
+                    results.append(line)
     else:
         if pattern:
             if invert:
