@@ -1,11 +1,21 @@
 __all__ = [
-    'pip_freeze', 'pip_install_editable'
+    'pip_freeze', 'pip_install_editable', 'pip_extras'
 ]
 
 import os.path
 import sys
 import bg_helper as bh
 import input_helper as ih
+try:
+    from importlib_metadata import metadata, PackageNotFoundError
+    no_metadata_warning_message = ''
+except (ImportError, ModuleNotFoundError):
+    try:
+        from importlib.metadata import metadata, PackageNotFoundError
+        no_metadata_warning_message = ''
+    except (ImportError, ModuleNotFoundError):
+        no_metadata_warning_message = 'Could not find importlib_metadata. Try to install with: pip3 install importlib_metadata'
+        metadata = None
 
 
 PIP = os.path.join(sys.prefix, 'bin', 'pip')
@@ -67,3 +77,32 @@ def pip_install_editable(paths, venv_only=True, debug=False, timeout=None, excep
     ]
     cmd = "{} install {}".format(PIP, ' '.join(parts))
     return bh.run(cmd, **common_kwargs)
+
+
+def pip_extras(package_name, venv_only=True, exception=True):
+    """Return the extras_requires keys for specified package
+
+    - package_name: Name of the package to get extras_requires keys
+    - venv_only: if True, only run pip if it's in a venv
+    - exception: if True, raise Exception if pip command has an error
+    """
+    if venv_only and not IN_A_VENV:
+        message = 'Not in a venv'
+        if exception:
+            raise Exception('Not in a venv')
+        print('Not in a venv')
+        return
+
+    if metadata is None:
+        if exception:
+            raise Exception(no_metadata_warning_message)
+        else:
+            print(no_metadata_warning_message)
+        return
+
+    try:
+        results = metadata(package_name).get_all('Provides-Extra')
+    except PackageNotFoundError:
+        pass
+    else:
+        return results
