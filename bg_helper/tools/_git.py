@@ -85,7 +85,10 @@ def git_clone(url, path='', name='', recursive=False, debug=False, timeout=None,
     path = path or getcwd()
     name = name or url.rsplit('/', 1)[-1].replace('.git', '')
     recursive = '--recursive ' if recursive else ''
-    local_path = join(path, name)
+    if not path.endswith(name):
+        local_path = join(path, name)
+    else:
+        local_path = path
     if show:
         common_kwargs['stderr_to_stdout'] = True
     else:
