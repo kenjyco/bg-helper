@@ -59,10 +59,11 @@ def run(cmd, stderr_to_stdout=False, debug=False, timeout=None, exception=False,
     return ret_code
 
 
-def run_output(cmd, debug=False, timeout=None, exception=False, show=False):
+def run_output(cmd, strip=True, debug=False, timeout=None, exception=False, show=False):
     """Run a shell command and return output or error
 
     - cmd: string with shell command
+    - strip: if True, strip trailing and leading whitespace from output
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
     - exception: if True, raise Exception if CalledProcessError or TimeoutExpired
@@ -90,7 +91,10 @@ def run_output(cmd, debug=False, timeout=None, exception=False, show=False):
             raise Exception(output)
         output = output.encode('utf-8')
 
-    return output.decode('utf-8').strip()
+    output = output.decode('utf-8')
+    if strip:
+        output = output.strip()
+    return output
 
 
 def run_or_die(cmd, stderr_to_stdout=False, debug=False, timeout=None, exception=True, show=False):

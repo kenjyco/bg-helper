@@ -24,10 +24,11 @@
         - exception: if True, raise Exception if non-zero exit status or TimeoutExpired
         - show: if True, show the command before executing
 
-    run_output(cmd, debug=False, timeout=None, exception=False, show=False)
+    run_output(cmd, strip=True, debug=False, timeout=None, exception=False, show=False)
         Run a shell command and return output or error
 
         - cmd: string with shell command
+        - strip: if True, strip trailing and leading whitespace from output
         - debug: if True, insert breakpoint right before subprocess.call
         - timeout: number of seconds to wait before stopping cmd
         - exception: if True, raise Exception if non-zero exit status or TimeoutExpired
