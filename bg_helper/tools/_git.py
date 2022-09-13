@@ -574,6 +574,8 @@ def git_branch_date(path='', branch='', fetch=False, debug=False, timeout=None,
     cmd = 'git show --format="%ci %cr" {} | head -n 1'.format(branch)
     with ctx_repo_path_root(path, fetch=fetch, **common_kwargs):
         output = bh.run_output(cmd, **common_kwargs)
+        if 'fatal:' in output:
+            output = ''
 
     return output
 
