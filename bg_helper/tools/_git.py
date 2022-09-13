@@ -32,19 +32,19 @@ def ctx_repo_path_root(path, fetch=False, debug=False, timeout=None,
     - fetch: if True, call git_fetch func once inside the correct directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
+    - exception: if True, and fetch is True, raise an Exception if `git fetch` fails
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: Show the `cd` commands before executing
     """
     oldpwd = getcwd()
     did_cd = False
     try:
-        if path:
-            repo_path_root = git_repo_path_root(path=path, exception=exception)
-            if repo_path_root != oldpwd:
-                if show:
-                    print('\n$ cd {}'.format(repr(repo_path_root)))
-                chdir(repo_path_root)
-                did_cd = True
+        repo_path_root = git_repo_path_root(path=path, exception=True)
+        if repo_path_root != oldpwd:
+            if show:
+                print('\n$ cd {}'.format(repr(repo_path_root)))
+            chdir(repo_path_root)
+            did_cd = True
         if fetch:
             git_fetch(debug=debug, timeout=timeout, exception=exception, show=show)
         yield
