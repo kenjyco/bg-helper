@@ -65,7 +65,7 @@ def git_repo_path_root(path='', exception=False):
     repo_path_root = fh.repopath(path)
     if exception and repo_path_root is None:
         raise ValueError('{} is not in a git repo'.format(path))
-    return repo_path_root
+    return repo_path_root if repo_path_root else ''
 
 
 def git_clone(url, path='', name='', recursive=False, debug=False, timeout=None,
