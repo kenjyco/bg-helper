@@ -199,6 +199,7 @@ def git_current_tracking_branch(path='', debug=False, timeout=None,
         - also raise Exception if git command has an error
     - show: if True, show the `git` command before executing
     """
+    result = ''
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
     cmd = 'git branch -r'
     with ctx_repo_path_root(path, **common_kwargs):
@@ -211,7 +212,10 @@ def git_current_tracking_branch(path='', debug=False, timeout=None,
         )
 
     if results:
-        return results[0]
+        result = results[0]
+
+    return result
+
 
 
 def git_last_tag(path='', debug=False, timeout=None, exception=True, show=False):
