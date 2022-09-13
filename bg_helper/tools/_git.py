@@ -78,7 +78,7 @@ def git_clone(url, path='', name='', recursive=False, debug=False, timeout=None,
     - recursive: if True, pass --recursive to `git clone`
     - debug: if True, insert breakpoint right before subprocess.call
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -108,8 +108,8 @@ def git_fetch(path='', output=False, debug=False, timeout=None, exception=True,
     - output: if True, return output of `git fetch --all --prune`
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -135,8 +135,8 @@ def git_do(path='', fetch=False, cmd=None, output=False, debug=False,
     - output: if True, capture output of cmd and return it; otherwise return exit status of cmd
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     assert cmd, 'The cmd argument is required'
@@ -168,15 +168,15 @@ def git_origin_url(path=''):
     return result
 
 
-def git_current_branch(path='', debug=False, timeout=None, exception=True,
+def git_current_branch(path='', debug=False, timeout=None, exception=False,
                        show=False):
     """Return current branch name
 
     - path: path to git repo, if not using current working directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -189,14 +189,14 @@ def git_current_branch(path='', debug=False, timeout=None, exception=True,
 
 
 def git_current_tracking_branch(path='', debug=False, timeout=None,
-                                exception=True, show=False):
+                                exception=False, show=False):
     """Return remote tracking branch for current branch
 
     - path: path to git repo, if not using current working directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     result = ''
@@ -218,14 +218,14 @@ def git_current_tracking_branch(path='', debug=False, timeout=None,
 
 
 
-def git_last_tag(path='', debug=False, timeout=None, exception=True, show=False):
+def git_last_tag(path='', debug=False, timeout=None, exception=False, show=False):
     """Return the most recent tag made
 
     - path: path to git repo, if not using current working directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -238,7 +238,7 @@ def git_last_tag(path='', debug=False, timeout=None, exception=True, show=False)
     return output
 
 
-def git_tag_message(path='', debug=False, tag='', timeout=None, exception=True,
+def git_tag_message(path='', debug=False, tag='', timeout=None, exception=False,
                     show=False):
     """Return the message for specified tag
 
@@ -246,8 +246,8 @@ def git_tag_message(path='', debug=False, tag='', timeout=None, exception=True,
     - tag: name of a tag that was made
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -264,15 +264,15 @@ def git_tag_message(path='', debug=False, tag='', timeout=None, exception=True,
     return message
 
 
-def git_last_tag_message(path='', debug=False, timeout=None, exception=True,
+def git_last_tag_message(path='', debug=False, timeout=None, exception=False,
                          show=False):
     """Return the message for the most recent tag made
 
     - path: path to git repo, if not using current working directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -284,14 +284,14 @@ def git_last_tag_message(path='', debug=False, timeout=None, exception=True,
     return message
 
 
-def git_tags(path='', debug=False, timeout=None, exception=True, show=False):
+def git_tags(path='', debug=False, timeout=None, exception=False, show=False):
     """Return a list of all tags with most recent first
 
     - path: path to git repo, if not using current working directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -308,15 +308,15 @@ def git_tags(path='', debug=False, timeout=None, exception=True, show=False):
     return tags
 
 
-def git_first_commit_id(path='', debug=False, timeout=None, exception=True,
+def git_first_commit_id(path='', debug=False, timeout=None, exception=False,
                         show=False):
     """Get the first commit id for the repo
 
     - path: path to git repo, if not using current working directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -328,15 +328,15 @@ def git_first_commit_id(path='', debug=False, timeout=None, exception=True,
     return output
 
 
-def git_last_commit_id(path='', debug=False, timeout=None, exception=True,
+def git_last_commit_id(path='', debug=False, timeout=None, exception=False,
                        show=False):
     """Get the last commit id for the repo
 
     - path: path to git repo, if not using current working directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -349,15 +349,15 @@ def git_last_commit_id(path='', debug=False, timeout=None, exception=True,
 
 
 def git_commits_since_last_tag(path='', until='', debug=False, timeout=None,
-                               exception=True, show=False):
+                               exception=False, show=False):
     """Return a list of commits made since last_tag
 
     - path: path to git repo, if not using current working directory
     - until: a recent commit id to stop at (instead of last commit)
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
 
     If no tag has been made, returns a list of commits since the first commit
@@ -381,15 +381,15 @@ def git_commits_since_last_tag(path='', until='', debug=False, timeout=None,
     return commits
 
 
-def git_unpushed_commits(path='', debug=False, timeout=None, exception=True,
+def git_unpushed_commits(path='', debug=False, timeout=None, exception=False,
                          show=False):
     """Return a list of any local commits that have not been pushed
 
     - path: path to git repo, if not using current working directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -405,15 +405,15 @@ def git_unpushed_commits(path='', debug=False, timeout=None, exception=True,
     return commits
 
 
-def git_untracked_files(path='', debug=False, timeout=None, exception=True,
+def git_untracked_files(path='', debug=False, timeout=None, exception=False,
                         show=False):
     """Return a list of any local files that are not tracked in the git repo
 
     - path: path to git repo, if not using current working directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -428,14 +428,14 @@ def git_untracked_files(path='', debug=False, timeout=None, exception=True,
     return files
 
 
-def git_stashlist(path='', debug=False, timeout=None, exception=True, show=False):
+def git_stashlist(path='', debug=False, timeout=None, exception=False, show=False):
     """Return a list of any local stashes
 
     - path: path to git repo, if not using current working directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -450,14 +450,14 @@ def git_stashlist(path='', debug=False, timeout=None, exception=True, show=False
     return stashes
 
 
-def git_status(path='', debug=False, timeout=None, exception=True, show=False):
+def git_status(path='', debug=False, timeout=None, exception=False, show=False):
     """Return a list of any modified or untracked files
 
     - path: path to git repo, if not using current working directory
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -473,15 +473,15 @@ def git_status(path='', debug=False, timeout=None, exception=True, show=False):
 
 
 def git_info_dict(path='', fetch=False, debug=False, timeout=None,
-                  exception=True, show=False):
+                  exception=False, show=False):
     """Return a dict of info about the repo
 
     - path: path to git repo, if not using current working directory
     - fetch: if True, call git_fetch func before calling the generated `git` command
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -505,15 +505,15 @@ def git_info_dict(path='', fetch=False, debug=False, timeout=None,
 
 
 def git_info_string(path='', fetch=False, debug=False, timeout=None,
-                    exception=True, show=False):
+                    exception=False, show=False):
     """Build up a string of info from git_info_dict and return it
 
     - path: path to git repo, if not using current working directory
     - fetch: if True, call git_fetch func before calling the generated `git` command
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -564,8 +564,8 @@ def git_branch_date(path='', branch='', fetch=False, debug=False, timeout=None,
     - fetch: if True, call git_fetch func before calling the generated `git` command
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
 
     Prefix branch name with 'origin/' to get date info of remote branch
@@ -588,8 +588,8 @@ def _dates_for_branches(path='', branches=None, debug=False, timeout=None,
     - branches: list of branch names
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -607,7 +607,7 @@ def _dates_for_branches(path='', branches=None, debug=False, timeout=None,
 
 
 def git_remote_branches(path='', fetch=False, grep='', include_times=False,
-                        debug=False, timeout=None, exception=True, show=False):
+                        debug=False, timeout=None, exception=False, show=False):
     """Return list of remote branch names or list of dicts (via `git ls-remote --heads`)
 
     - path: path to git repo, if not using current working directory
@@ -617,8 +617,8 @@ def git_remote_branches(path='', fetch=False, grep='', include_times=False,
     - include_times: if True, include info from git_branch_date in results
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
 
     Results are alphabetized if include_times is False, otherwise ordered by most
@@ -647,7 +647,7 @@ def git_remote_branches(path='', fetch=False, grep='', include_times=False,
 
 
 def git_local_branches(path='', fetch=False,  grep='', include_times=False,
-                       debug=False, timeout=None, exception=True, show=False):
+                       debug=False, timeout=None, exception=False, show=False):
     """Return list of local branch names or list of dicts (via `git branch`)
 
     - path: path to git repo, if not using current working directory
@@ -657,8 +657,8 @@ def git_local_branches(path='', fetch=False,  grep='', include_times=False,
     - include_times: if True, include info from git_branch_date in results
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
 
     Results are alphabetized if include_times is False, otherwise ordered by most
@@ -692,8 +692,8 @@ def git_remote_branches_merged_with(path='', branch='develop', fetch=False,
     - include_times: if True, include info from git_branch_date in results
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
@@ -729,8 +729,8 @@ def git_local_branches_merged_with(path='', branch='develop', fetch=False,
     - include_times: if True, include info from git_branch_date in results
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
-    - exception: if True, raise a ValueError if path is not in a repo
-        - also raise Exception if git command has an error
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
     - show: if True, show the `git` command before executing
     """
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
