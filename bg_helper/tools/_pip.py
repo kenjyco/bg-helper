@@ -1,5 +1,5 @@
 __all__ = [
-    'pip_freeze', 'pip_install_editable', 'pip_extras'
+    'IN_A_VENV', 'PATH_TO_PIP', 'pip_freeze', 'pip_install_editable', 'pip_extras'
 ]
 
 import os.path
@@ -18,11 +18,11 @@ except (ImportError, ModuleNotFoundError):
         metadata = None
 
 
-PIP = os.path.join(sys.prefix, 'bin', 'pip')
-if not os.path.isfile(PIP):
-    PIP = os.path.join(sys.prefix, 'Scripts', 'pip')
-    if not os.path.isfile(PIP):
-        __all__ = []
+PATH_TO_PIP = os.path.join(sys.prefix, 'bin', 'pip')
+if not os.path.isfile(PATH_TO_PIP):
+    PATH_TO_PIP = os.path.join(sys.prefix, 'Scripts', 'pip')
+    if not os.path.isfile(PATH_TO_PIP):
+        PATH_TO_PIP = ''
 
 IN_A_VENV = True
 if sys.prefix == sys.base_prefix:
