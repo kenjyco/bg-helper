@@ -1,12 +1,13 @@
 __all__ = [
-    'ctx_repo_path_root', 'git_repo_path_root', 'git_clone', 'git_fetch',
-    'git_origin_url', 'git_do', 'git_current_branch', 'git_current_tracking_branch',
-    'git_last_tag', 'git_tag_message', 'git_last_tag_message', 'git_tags',
-    'git_first_commit_id', 'git_last_commit_id', 'git_commits_since_last_tag',
-    'git_unpushed_commits', 'git_untracked_files', 'git_stashlist',
-    'git_status', 'git_info_dict', 'git_info_string', 'git_branch_date',
-    'git_remote_branches', 'git_local_branches',
-    'git_remote_branches_merged_with', 'git_local_branches_merged_with'
+    'ctx_repo_path_root', 'git_repo_path_root', 'git_repo_update', 'git_clone',
+    'git_fetch', 'git_origin_url', 'git_do', 'git_current_branch',
+    'git_current_tracking_branch', 'git_last_tag', 'git_tag_message',
+    'git_last_tag_message', 'git_tags', 'git_first_commit_id',
+    'git_last_commit_id', 'git_commits_since_last_tag', 'git_unpushed_commits',
+    'git_untracked_files', 'git_stashlist', 'git_status', 'git_info_dict',
+    'git_info_string', 'git_branch_date', 'git_remote_branches',
+    'git_local_branches', 'git_remote_branches_merged_with',
+    'git_local_branches_merged_with'
 ]
 
 import re
@@ -66,6 +67,58 @@ def git_repo_path_root(path='', exception=False):
     if exception and repo_path_root is None:
         raise ValueError('{} is not in a git repo'.format(path))
     return repo_path_root if repo_path_root else ''
+
+
+def git_repo_update(path='', debug=False, timeout=None, exception=True, show=False):
+    """Update a repo and return True if it was successful
+
+    - path: path to git repo, if not using current working directory
+    - debug: if True, insert breakpoint right before subprocess.call
+    - timeout: number of seconds to wait before stopping cmd
+    - exception: if True, raise an Exception if the `git` command has an error
+        - if path is not in a git repo, a ValueError is raised even if exception is False
+    - show: if True, show the `git` command before executing
+    """
+    _exception = exception
+    common_kwargs = dict(debug=debug, timeout=timeout, exception=False, show=show)
+    path = path or getcwd()
+    print_msg = lambda x: x
+    if show == True:
+        print_msg = print
+    with ctx_repo_path_root(path, **common_kwargs):
+        tracking_branch = git_current_tracking_branch(**common_kwargs)
+        branch = git_current_branch(**common_kwargs)
+        origin_url = git_origin_url()
+        print_msg(f'tracking_branch -> {tracking_branch}  branch -> {branch}  origin_url -> {origin_url}')
+        common_kwargs['exception'] = _exception
+
+        if not origin_url:
+            print_msg('Local-only repo, not updating')
+        elif not tracking_branch:
+            print_msg('No tracking branch, going to do `git fetch` only')
+            git_fetch(**common_kwargs)
+        else:
+            stash_output = bh.run_output('git stash', **common_kwargs)
+            if show:
+                common_kwargs['stderr_to_stdout'] = True
+            else:
+                common_kwargs['stderr_to_stdout'] = False
+            cmd = 'git pull --rebase'
+            if show == False:
+                cmd += " >/dev/null"
+            if stash_output == 'No local changes to save':
+                print_msg('Repository is clean, going to do `git pull --rebase`')
+                ret_code = bh.run(cmd, **common_kwargs)
+                if ret_code != 0:
+                    return False
+            else:
+                print_msg('Dirty repo with tracking branch, going to do `stash pull pop`')
+                ret_code = bh.run(cmd, **common_kwargs)
+                ret_code2 = bh.run('git stash pop --quiet', **common_kwargs)
+                if ret_code != 0 or  ret_code2 != 0:
+                    return False
+
+            return True
 
 
 def git_clone(url, path='', name='', recursive=False, debug=False, timeout=None,
