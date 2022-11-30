@@ -29,14 +29,25 @@ if sys.prefix == sys.base_prefix:
     IN_A_VENV = False
 
 
-def pip_freeze(venv_only=True, debug=False, timeout=None, exception=True, show=False):
+def pip_freeze(pip_path='', venv_only=True, debug=False, timeout=None,
+               exception=True, show=False):
     """
+    - pip_path: absolute path to pip in a virtual environment
+        - use derived PATH_TO_PIP if not specified
     - venv_only: if True, only run pip if it's in a venv
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
     - exception: if True, raise Exception if pip command has an error
     - show: if True, show the `pip` command before executing
     """
+    if pip_path:
+        venv_only = False
+    elif PATH_TO_PIP:
+        pip_path = PATH_TO_PIP
+    else:
+        if exception:
+            raise Exception('No pip_path specified and derived PATH_TO_PIP is empty')
+        return
     if venv_only and not IN_A_VENV:
         if exception:
             raise Exception('Not in a venv')
@@ -46,24 +57,39 @@ def pip_freeze(venv_only=True, debug=False, timeout=None, exception=True, show=F
         common_kwargs['stderr_to_stdout'] = True
     else:
         common_kwargs['stderr_to_stdout'] = False
-    cmd = "{} freeze".format(PIP)
+    cmd = "{} freeze".format(pip_path)
     return bh.run(cmd, **common_kwargs)
 
 
-def pip_install_editable(paths, venv_only=True, debug=False, timeout=None, exception=True, show=False):
+def pip_install_editable(paths, pip_path='', venv_only=True, debug=False,
+                         timeout=None, exception=True, show=False):
     """Pip install the given paths in "editable mode"
 
     - paths: local paths to projects to install in "editable mode"
         - list of strings OR string separated by any of , ; |
+    - pip_path: absolute path to pip in a virtual environment
+        - use derived PATH_TO_PIP if not specified
     - venv_only: if True, only run pip if it's in a venv
     - debug: if True, insert breakpoint right before subprocess.check_output
     - timeout: number of seconds to wait before stopping cmd
     - exception: if True, raise Exception if pip command has an error
     - show: if True, show the `pip` command before executing
     """
-    if venv_only and not IN_A_VENV:
+    if pip_path:
+        venv_only = False
+    elif PATH_TO_PIP:
+        pip_path = PATH_TO_PIP
+    else:
+        message = 'No pip_path specified and derived PATH_TO_PIP is empty'
         if exception:
-            raise Exception('Not in a venv')
+            raise Exception(message)
+        print(message)
+        return
+    if venv_only and not IN_A_VENV:
+        message = 'Not in a venv'
+        if exception:
+            raise Exception(message)
+        print(message)
         return
     common_kwargs = dict(debug=debug, timeout=timeout, exception=exception, show=show)
     if show:
@@ -75,7 +101,7 @@ def pip_install_editable(paths, venv_only=True, debug=False, timeout=None, excep
         '-e {}'.format(repr(path))
         for path in paths
     ]
-    cmd = "{} install {}".format(PIP, ' '.join(parts))
+    cmd = "{} install {}".format(pip_path, ' '.join(parts))
     return bh.run(cmd, **common_kwargs)
 
 
