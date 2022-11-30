@@ -7,6 +7,56 @@ import bg_helper as bh
 import input_helper as ih
 
 
+def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
+                           lines_before_match=None, lines_after_match=None,
+                           exclude_files=None, exclude_dirs=None):
+    """Return the common args that should be passed to grep based on kwargs set
+
+    - pattern: grep pattern string (extended `-E` style allowed)
+    - ignore_case: if True, ignore case (`grep -i` or re.IGNORECASE)
+    - invert: if True, select non-matching items (`grep -v`)
+    - lines_before_match: number of context lines to show before match
+        - will not be used if `invert=True`
+    - lines_after_match: number of context lines to show after match
+        - will not be used if `invert=True`
+    - exclude_files: list of file names and patterns to exclude from searching
+        - or string separated by any of , ; |
+    - exclude_dirs: list of dir names and patterns to exclude from searching
+        - or string separated by any of , ; |
+    """
+    assert pattern, "The grep 'pattern' is required (extended `-E` style allowed)"
+    grep_args = '-'
+    if ignore_case:
+        grep_args += 'i'
+    if invert:
+        grep_args += 'v'
+    else:
+        if grep_args == '-':
+            grep_args = ''
+        if lines_before_match:
+            grep_args = '-B {} '.format(lines_before_match) + grep_args
+        if lines_after_match:
+            grep_args = '-A {} '.format(lines_after_match) + grep_args
+    if exclude_files:
+        exclude_files = ih.get_list_from_arg_strings(exclude_files)
+        grep_args += ' ' + ' '.join([
+            '--exclude={}'.format(repr(f))
+            for f in exclude_files
+        ])
+    if exclude_dirs:
+        exclude_dirs = ih.get_list_from_arg_strings(exclude_dirs)
+        grep_args += ' ' + ' '.join([
+            '--exclude-dir={}'.format(repr(d))
+            for d in exclude_dirs
+        ])
+    if '(' in pattern and '|' in pattern and ')' in pattern:
+        grep_args += ' -E {}'.format(repr(pattern))
+    else:
+        grep_args += ' {}'.format(repr(pattern))
+
+    return grep_args.strip()
+
+
 def grep_output(output, pattern=None, regex=None, ignore_case=True, invert=False,
                 lines_before_match=None, lines_after_match=None,
                 results_as_string=False, join_result_string_on='\n',
@@ -16,7 +66,7 @@ def grep_output(output, pattern=None, regex=None, ignore_case=True, invert=False
     - output: some output you would be piping to grep in a shell environment
     - pattern: grep pattern string (extended `-E` style allowed)
     - regex: a compiled regular expression (from re.compile)
-        - or a sting that can be passed to re.compile
+        - or a string that can be passed to re.compile
         - if match groups are used, the group matches will be returned
     - ignore_case: if True, ignore case (`grep -i` or re.IGNORECASE)
     - invert: if True, select non-matching items (`grep -v`)
@@ -64,24 +114,15 @@ def grep_output(output, pattern=None, regex=None, ignore_case=True, invert=False
             results = join_result_string_on.join(results)
     else:
         if pattern:
-            _grep_args = '-'
-            if ignore_case:
-                _grep_args += 'i'
-            if invert:
-                _grep_args += 'v'
-            else:
-                if _grep_args == '-':
-                    _grep_args = ''
-                if lines_before_match:
-                    _grep_args = '-B {} '.format(lines_before_match) + _grep_args
-                if lines_after_match:
-                    _grep_args = '-A {} '.format(lines_after_match) + _grep_args
-            if '(' in pattern and '|' in pattern and ')' in pattern:
-                _grep_args += ' -E {}'.format(repr(pattern))
-            else:
-                _grep_args += ' {}'.format(repr(pattern))
+            grep_args = _prep_common_grep_args(
+                pattern=pattern,
+                ignore_case=ignore_case,
+                invert=invert,
+                lines_before_match=lines_before_match,
+                lines_after_match=lines_after_match
+            )
 
-            cmd = 'echo {} | grep {}'.format(repr(output), _grep_args)
+            cmd = 'echo {} | grep {}'.format(repr(output), grep_args)
             if extra_pipe:
                 cmd += ' | {}'.format(extra_pipe)
             new_output = bh.run_output(cmd, strip=strip_whitespace, show=show)
