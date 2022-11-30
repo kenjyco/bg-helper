@@ -1,10 +1,13 @@
 __all__ = [
-    'grep_output'
+    'grep_output', 'grep_select_vim'
 ]
 
 import re
 import bg_helper as bh
+import fs_helper as fh
 import input_helper as ih
+from os import getcwd, listdir
+from os.path import isfile
 
 
 def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
@@ -150,3 +153,84 @@ def grep_output(output, pattern=None, regex=None, ignore_case=True, invert=False
                 results = ih.splitlines(new_output)
 
     return results
+
+
+def grep_select_vim(path='', recursive=False, pattern=None, ignore_case=True,
+                    invert=False, lines_before_match=None,
+                    lines_after_match=None, exclude_files=None,
+                    exclude_dirs=None, open_all_together=False, show=False):
+    """Use grep to find files, then present a menu of results and line numbers
+
+    - path: path to directory where the search should be started, if not using
+      current working directory
+    - recursive: if True, use `-R` to search all files at path
+    - pattern: grep pattern string (extended `-E` style allowed)
+    - regex: a compiled regular expression (from re.compile)
+        - or a string that can be passed to re.compile
+        - if match groups are used, the group matches will be returned
+    - ignore_case: if True, ignore case (`grep -i` or re.IGNORECASE)
+    - invert: if True, select non-matching items (`grep -v`)
+        - only applied when using pattern, not regex
+    - lines_before_match: number of context lines to show before match
+        - only applied when using pattern, not regex
+        - will not be used if `invert=True`
+    - lines_after_match: number of context lines to show after match
+        - only applied when using pattern, not regex
+        - will not be used if `invert=True`
+    - exclude_files: list of file names and patterns to exclude from searching
+        - or string separated by any of , ; |
+    - exclude_dirs: list of dir names and patterns to exclude from searching
+        - or string separated by any of , ; |
+    - open_all_together: if True, don't open each individual file to the line
+      number, just open them all in the same vim session
+
+    Any selections made will result in the file(s) being opened with vim to the
+    particular line number. If multiple selections are made and
+    open_all_together is False, each will be opened after the previous file is
+    closed.
+    """
+    results = []
+    path = path or getcwd()
+    path = fh.abspath(path)
+    grep_args = _prep_common_grep_args(
+        pattern=pattern,
+        ignore_case=ignore_case,
+        invert=invert,
+        lines_before_match=lines_before_match,
+        lines_after_match=lines_after_match,
+        exclude_files=exclude_files,
+        exclude_dirs=exclude_dirs
+    )
+    grep_args += ' -n'
+    if recursive:
+        grep_args += ' -R .'
+    else:
+        files = [repr(f) for f in listdir('.') if isfile(f)]
+        grep_args += ' ' + ' '.join(files)
+
+    results = []
+    rx1 = re.compile(r'^(?P<filename>[^:]+):(?P<line_no>\d+):(?P<line>.*)$')
+    rx2 = re.compile(r'^(?P<filename>.+)-(?P<line_no>\d+)-(?P<line>.*)$')
+    for line in ih.splitlines(bh.run_output('grep {}'.format(grep_args))):
+        match1 = rx1.match(line)
+        match2 = rx2.match(line)
+        if match1:
+            results.append(match1.groupdict())
+        elif match2:
+            results.append(match2.groupdict())
+
+    prompt = "Select matches that you want to open to with vim"
+    selected = ih.make_selections(
+        results,
+        prompt=prompt,
+        wrap=False,
+        item_format='{filename} ({line_no}) {line}'
+    )
+
+    if selected:
+        if open_all_together:
+            vim_args = ' '.join(sorted(set(repr(s['filename']) for s in selected)))
+            bh.run('vim {}'.format(vim_args))
+        else:
+            for s in selected:
+                bh.run('vim {} +{}'.format(repr(s['filename']), s['line_no']))
