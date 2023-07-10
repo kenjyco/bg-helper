@@ -488,7 +488,7 @@ def docker_postgres_start(name, version='13-alpine', port=5400, username='postgr
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker commands and output
     - force: if True, stop the container and remove it before re-creating
-    - wait: if True, don't return until mysql is able to accept connections
+    - wait: if True, don't return until postgres is able to accept connections
     - sleeptime: if wait is True, sleep this number of seconds before checks
 
     See: https://hub.docker.com/_/postgres for image versions ("supported tags")
