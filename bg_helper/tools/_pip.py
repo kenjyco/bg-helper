@@ -1,17 +1,20 @@
 __all__ = [
-    'IN_A_VENV', 'PATH_TO_PIP', 'pip_freeze', 'pip_install_editable', 'pip_extras'
+    'IN_A_VENV', 'PATH_TO_PIP', 'PATH_TO_SITE_PACKAGES', 'installed_packages',
+    'installed_packages_by_dir', 'installed_packages_non_site_packages',
+    'pip_freeze', 'pip_install_editable', 'pip_extras'
 ]
 
 import os.path
+import site
 import sys
 import bg_helper as bh
 import input_helper as ih
 try:
-    from importlib_metadata import metadata, PackageNotFoundError
+    from importlib_metadata import distributions, metadata, PackageNotFoundError
     no_metadata_warning_message = ''
 except (ImportError, ModuleNotFoundError):
     try:
-        from importlib.metadata import metadata, PackageNotFoundError
+        from importlib.metadata import distributions, metadata, PackageNotFoundError
         no_metadata_warning_message = ''
     except (ImportError, ModuleNotFoundError):
         no_metadata_warning_message = 'Could not find importlib_metadata. Try to install with: pip3 install importlib_metadata'
@@ -27,6 +30,55 @@ if not os.path.isfile(PATH_TO_PIP):
 IN_A_VENV = True
 if sys.prefix == sys.base_prefix:
     IN_A_VENV = False
+
+PATH_TO_SITE_PACKAGES = [
+    p
+    for p in site.getsitepackages()
+    if p.endswith('site-packages')
+][0]
+
+def installed_packages():
+    """Return a dict of installed packages from importlib_metadata.distributions
+    """
+    return {
+        dist.metadata['Name']: dist.version
+        for dist in distributions()
+    }
+
+
+def installed_packages_by_dir():
+    """Return a dict of installed packages from importlib_metadata.distributions
+
+    The 'standard' key will have a dict of standard packages and their versions.
+    The 'other' key will have a dict of packages that are installed outside of
+    PATH_TO_SITE_PACKAGES (editable installs)
+    """
+    results = {'standard': {}, 'other': {}}
+    for dist in distributions():
+        name = dist.metadata['Name']
+        dist_path = os.path.dirname(dist._path)
+        if dist_path == PATH_TO_SITE_PACKAGES:
+            results['standard'][name] = dist.version
+        else:
+            results['other'][name] = dist_path
+
+    return results
+
+
+def installed_packages_non_site_packages():
+    """Return a dict of installed packages from importlib_metadata.distributions
+
+    Only include the packages that are not in PATH_TO_SITE_PACKAGES
+    """
+    results = {}
+    for dist in distributions():
+        name = dist.metadata['Name']
+        dist_path = os.path.dirname(dist._path)
+        if dist_path == PATH_TO_SITE_PACKAGES:
+            continue
+        results[name] = dist_path
+
+    return results
 
 
 def pip_freeze(pip_path='', venv_only=True, debug=False, timeout=None,
