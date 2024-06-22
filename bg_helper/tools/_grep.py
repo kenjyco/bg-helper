@@ -81,10 +81,12 @@ def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
     return grep_args.strip()
 
 
-def grep_output(output, pattern=None, regex=None, ignore_case=True, invert=False,
-                lines_before_match=None, lines_after_match=None,
+def grep_output(output, pattern=None, regex=None, ignore_case=True,
+                invert=False, lines_before_match=None, lines_after_match=None,
                 results_as_string=False, join_result_string_on='\n',
-                strip_whitespace=False, extra_pipe=None, show=False):
+                strip_whitespace=False, no_filename=False, line_number=False,
+                only_matching=False, byte_offset=False, extra_pipe=None,
+                show=False):
     """Use grep to match lines of output against pattern
 
     - output: some output you would be piping to grep in a shell environment
@@ -105,6 +107,18 @@ def grep_output(output, pattern=None, regex=None, ignore_case=True, invert=False
     - join_result_string_on: character or string to join a list of strings on
         - only applied if `results_as_string=True`
     - strip_whitespace: if True: strip trailing and leading whitespace for results
+    - no_filename: if True, do not prefix matching lines with their corresponding
+      file names
+        - only applied when using pattern, not regex
+    - line_number: if True, prefix matching lines with line number within its
+      input file
+        - only applied when using pattern, not regex
+    - only_matching: if True, print only the matched parts of a matching line
+        - only applied when using pattern, not regex
+    - byte_offset: if True, print the byte offset within the input file before each
+      line of output
+        - only applied when using pattern, not regex
+        - if `only_matching=True`, print the offset of the matching part itself
     - extra_pipe: string containing other command(s) to pipe grepped output to
         - only applied when using pattern, not regex
     - show: if True, show the `grep` command before executing
@@ -143,7 +157,11 @@ def grep_output(output, pattern=None, regex=None, ignore_case=True, invert=False
                 ignore_case=ignore_case,
                 invert=invert,
                 lines_before_match=lines_before_match,
-                lines_after_match=lines_after_match
+                lines_after_match=lines_after_match,
+                no_filename=no_filename,
+                line_number=line_number,
+                only_matching=only_matching,
+                byte_offset=byte_offset
             )
 
             cmd = 'echo {} | grep {}'.format(repr(output), grep_args)
