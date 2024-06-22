@@ -12,7 +12,9 @@ from os.path import isfile
 
 def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
                            lines_before_match=None, lines_after_match=None,
-                           exclude_files=None, exclude_dirs=None):
+                           exclude_files=None, exclude_dirs=None,
+                           no_filename=False, line_number=False,
+                           only_matching=False, byte_offset=False):
     """Return the common args that should be passed to grep based on kwargs set
 
     - pattern: grep pattern string (extended `-E` style allowed)
@@ -26,11 +28,28 @@ def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
         - or string separated by any of , ; |
     - exclude_dirs: list of dir names and patterns to exclude from searching
         - or string separated by any of , ; |
+    - no_filename: if True, do not prefix matching lines with their corresponding
+      file names
+    - line_number: if True, prefix matching lines with line number within its
+      input file
+    - only_matching: if True, print only the matched parts of a matching line
+    - byte_offset: if True, print the byte offset within the input file before each
+      line of output
+        - if `only_matching=True`, print the offset of the matching part itself
     """
     assert pattern, "The grep 'pattern' is required (extended `-E` style allowed)"
     grep_args = '-'
     if ignore_case:
         grep_args += 'i'
+    if no_filename:
+        grep_args += 'h'
+    if line_number:
+        grep_args += 'n'
+    if only_matching:
+        grep_args += 'o'
+    if byte_offset:
+        grep_args += 'b'
+
     if invert:
         grep_args += 'v'
     else:
@@ -40,6 +59,7 @@ def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
             grep_args = '-B {} '.format(lines_before_match) + grep_args
         if lines_after_match:
             grep_args = '-A {} '.format(lines_after_match) + grep_args
+
     if exclude_files:
         exclude_files = ih.get_list_from_arg_strings(exclude_files)
         grep_args += ' ' + ' '.join([
@@ -52,6 +72,7 @@ def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
             '--exclude-dir={}'.format(repr(d))
             for d in exclude_dirs
         ])
+
     if '(' in pattern and '|' in pattern and ')' in pattern:
         grep_args += ' -E {}'.format(repr(pattern))
     else:
