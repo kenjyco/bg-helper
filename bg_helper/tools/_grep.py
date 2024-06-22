@@ -6,7 +6,7 @@ import re
 import bg_helper as bh
 import fs_helper as fh
 import input_helper as ih
-from os import getcwd, listdir
+from os import chdir, getcwd, listdir
 from os.path import isfile
 
 
@@ -194,27 +194,21 @@ def grep_output(output, pattern=None, regex=None, ignore_case=True,
     return results
 
 
-def grep_select_vim(path='', recursive=False, pattern=None, ignore_case=True,
+def grep_select_vim(pattern, path='', recursive=True, ignore_case=True,
                     invert=False, lines_before_match=None,
                     lines_after_match=None, exclude_files=None,
-                    exclude_dirs=None, open_all_together=False, show=False):
+                    exclude_dirs=None, open_all_together=False):
     """Use grep to find files, then present a menu of results and line numbers
 
+    - pattern: grep pattern string (extended `-E` style allowed)
     - path: path to directory where the search should be started, if not using
       current working directory
     - recursive: if True, use `-R` to search all files at path
-    - pattern: grep pattern string (extended `-E` style allowed)
-    - regex: a compiled regular expression (from re.compile)
-        - or a string that can be passed to re.compile
-        - if match groups are used, the group matches will be returned
     - ignore_case: if True, ignore case (`grep -i` or re.IGNORECASE)
     - invert: if True, select non-matching items (`grep -v`)
-        - only applied when using pattern, not regex
     - lines_before_match: number of context lines to show before match
-        - only applied when using pattern, not regex
         - will not be used if `invert=True`
     - lines_after_match: number of context lines to show after match
-        - only applied when using pattern, not regex
         - will not be used if `invert=True`
     - exclude_files: list of file names and patterns to exclude from searching
         - or string separated by any of , ; |
@@ -228,9 +222,9 @@ def grep_select_vim(path='', recursive=False, pattern=None, ignore_case=True,
     open_all_together is False, each will be opened after the previous file is
     closed.
     """
-    results = []
     path = path or getcwd()
     path = fh.abspath(path)
+    chdir(path)
     grep_args = _prep_common_grep_args(
         pattern=pattern,
         ignore_case=ignore_case,
@@ -238,9 +232,10 @@ def grep_select_vim(path='', recursive=False, pattern=None, ignore_case=True,
         lines_before_match=lines_before_match,
         lines_after_match=lines_after_match,
         exclude_files=exclude_files,
-        exclude_dirs=exclude_dirs
+        exclude_dirs=exclude_dirs,
+        line_number=True
     )
-    grep_args += ' -n'
+
     if recursive:
         grep_args += ' -R .'
     else:
