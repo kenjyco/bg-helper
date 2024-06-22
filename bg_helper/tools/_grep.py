@@ -1,5 +1,5 @@
 __all__ = [
-    'grep_output', 'grep_select_vim'
+    'grep_output', 'grep_path', 'grep_select_vim'
 ]
 
 import re
@@ -190,6 +190,105 @@ def grep_output(output, pattern=None, regex=None, ignore_case=True,
                 results = ih.splitlines_and_strip(new_output)
             else:
                 results = ih.splitlines(new_output)
+
+    return results
+
+
+def grep_path(pattern, path='', recursive=True, ignore_case=True, invert=False,
+              lines_before_match=None, lines_after_match=None,
+              exclude_files=None, exclude_dirs=None, results_as_string=False,
+              join_result_string_on='\n', strip_whitespace=False,
+              no_filename=False, line_number=False, only_matching=False,
+              byte_offset=False, extra_pipe=None, color=False, show=False):
+    """Use grep to match lines in files at a path against pattern
+
+    - pattern: grep pattern string (extended `-E` style allowed)
+    - path: path to directory where the search should be started, if not using
+      current working directory
+    - recursive: if True, use `-R` to search all files at path
+    - ignore_case: if True, ignore case (`grep -i` or re.IGNORECASE)
+    - invert: if True, select non-matching items (`grep -v`)
+    - lines_before_match: number of context lines to show before match
+        - will not be used if `invert=True`
+    - lines_after_match: number of context lines to show after match
+        - will not be used if `invert=True`
+    - exclude_files: list of file names and patterns to exclude from searching
+        - or string separated by any of , ; |
+    - exclude_dirs: list of dir names and patterns to exclude from searching
+        - or string separated by any of , ; |
+    - results_as_string: if True, return a string instead of a list of strings
+    - join_result_string_on: character or string to join a list of strings on
+        - only applied if `results_as_string=True`
+    - strip_whitespace: if True: strip trailing and leading whitespace for results
+    - no_filename: if True, do not prefix matching lines with their corresponding
+      file names
+    - line_number: if True, prefix matching lines with line number within its
+      input file
+    - only_matching: if True, print only the matched parts of a matching line
+    - byte_offset: if True, print the byte offset within the input file before each
+      line of output
+        - if `only_matching=True`, print the offset of the matching part itself
+    - extra_pipe: string containing other command(s) to pipe grepped output to
+    - color: if True, will invoke the generated grep command with `bh.run` (output
+      will not be captured)
+        - if `results_as_string=True`, color is set to False
+        - if `strip_whitespace=True`, color is set to False
+    - show: if True, show the `grep` command before executing
+    """
+    path = path or getcwd()
+    path = fh.abspath(path)
+    chdir(path)
+    grep_args = _prep_common_grep_args(
+        pattern=pattern,
+        ignore_case=ignore_case,
+        invert=invert,
+        lines_before_match=lines_before_match,
+        lines_after_match=lines_after_match,
+        exclude_files=exclude_files,
+        exclude_dirs=exclude_dirs,
+        no_filename=no_filename,
+        line_number=line_number,
+        only_matching=only_matching,
+        byte_offset=byte_offset
+    )
+
+    if results_as_string is True or strip_whitespace is True:
+        color=False
+    if color:
+        grep_args += ' --color'
+
+    if recursive:
+        grep_args += ' -R .'
+    else:
+        files = [repr(f) for f in listdir('.') if isfile(f)]
+        grep_args += ' ' + ' '.join(files)
+
+    cmd = 'grep {}'.format(grep_args)
+
+    if extra_pipe:
+        cmd += ' | {}'.format(extra_pipe)
+
+    if color:
+        return bh.run(cmd, show=show)
+
+    output = bh.run_output(cmd, strip=strip_whitespace, show=show)
+
+    results = []
+    if results_as_string:
+        results = output
+        if join_result_string_on != '\n':
+            if strip_whitespace:
+                results = join_result_string_on.join(ih.splitlines_and_strip(results))
+            else:
+                results = join_result_string_on.join(ih.splitlines(results))
+        else:
+            if strip_whitespace:
+                results = results.strip()
+    else:
+        if strip_whitespace:
+            results = ih.splitlines_and_strip(output)
+        else:
+            results = ih.splitlines(output)
 
     return results
 
