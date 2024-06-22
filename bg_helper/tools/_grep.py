@@ -1,5 +1,5 @@
 __all__ = [
-    'grep_output', 'grep_path', 'grep_path_count', 'grep_select_vim'
+    'grep_output', 'grep_path', 'grep_path_count', 'grep_path_count_dirs', 'grep_select_vim'
 ]
 
 import re
@@ -7,7 +7,7 @@ import bg_helper as bh
 import fs_helper as fh
 import input_helper as ih
 from os import chdir, getcwd, listdir
-from os.path import isfile
+from os.path import dirname, isfile
 
 
 def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
@@ -352,6 +352,74 @@ def grep_path_count(pattern, path='', recursive=True, ignore_case=True,
         results = join_result_string_on.join([
             '{}:{}'.format(fname, count)
             for fname, count in results
+        ])
+
+    return results
+
+
+def grep_path_count_dirs(pattern, path='', recursive=True, ignore_case=True,
+                         invert=False, exclude_files=None, exclude_dirs=None,
+                         results_as_string=False, join_result_string_on='\n',
+                         show=False):
+    """Use grep to count match lines in files against pattern, aggregated by dir
+
+    - pattern: grep pattern string (extended `-E` style allowed)
+    - path: path to directory where the search should be started, if not using
+      current working directory
+    - recursive: if True, use `-R` to search all files at path
+    - ignore_case: if True, ignore case (`grep -i` or re.IGNORECASE)
+    - invert: if True, select non-matching items (`grep -v`)
+    - exclude_files: list of file names and patterns to exclude from searching
+        - or string separated by any of , ; |
+    - exclude_dirs: list of dir names and patterns to exclude from searching
+        - or string separated by any of , ; |
+    - results_as_string: if True, return a string instead of a list of tuples
+    - join_result_string_on: character or string to join a list of strings on
+        - only applied if `results_as_string=True`
+    - show: if True, show the `grep` command before executing
+
+    Return a list of 2-item tuples for dirname and number of matched lines
+    """
+    path = path or getcwd()
+    path = fh.abspath(path)
+    chdir(path)
+    grep_args = _prep_common_grep_args(
+        pattern=pattern,
+        ignore_case=ignore_case,
+        invert=invert,
+        exclude_files=exclude_files,
+        exclude_dirs=exclude_dirs
+    )
+    grep_args += ' -c'
+
+    if recursive:
+        grep_args += ' -R .'
+    else:
+        files = [repr(f) for f in listdir('.') if isfile(f)]
+        grep_args += ' ' + ' '.join(files)
+
+    cmd = 'grep {}'.format(grep_args)
+
+    output = bh.run_output(cmd, show=show)
+
+    dir_count_dict = {}
+    for line in output.split('\n'):
+        line = line.strip()
+        if line:
+            fname, count = line.rsplit(':', 1)
+            count = int(count)
+            if count > 0:
+                dname = dirname(fname)
+                if dname in dir_count_dict:
+                    dir_count_dict[dname] += count
+                else:
+                    dir_count_dict[dname] = count
+
+    results = sorted(dir_count_dict.items(), key=lambda x: (-x[1], x[0]))
+    if results_as_string:
+        results = join_result_string_on.join([
+            '{}:{}'.format(dname, count)
+            for dname, count in results
         ])
 
     return results
