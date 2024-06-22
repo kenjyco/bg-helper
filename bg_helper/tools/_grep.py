@@ -14,7 +14,8 @@ def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
                            lines_before_match=None, lines_after_match=None,
                            exclude_files=None, exclude_dirs=None,
                            no_filename=False, line_number=False,
-                           only_matching=False, byte_offset=False):
+                           only_matching=False, byte_offset=False,
+                           suppress_errors=True):
     """Return the common args that should be passed to grep based on kwargs set
 
     - pattern: grep pattern string (extended `-E` style allowed)
@@ -36,6 +37,8 @@ def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
     - byte_offset: if True, print the byte offset within the input file before each
       line of output
         - if `only_matching=True`, print the offset of the matching part itself
+    - suppress_errors: if True, suppress error messages about nonexistent or
+      unreadable files
     """
     assert pattern, "The grep 'pattern' is required (extended `-E` style allowed)"
     grep_args = '-'
@@ -49,6 +52,8 @@ def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
         grep_args += 'o'
     if byte_offset:
         grep_args += 'b'
+    if suppress_errors:
+        grep_args += 's'
 
     if invert:
         grep_args += 'v'
@@ -85,8 +90,8 @@ def grep_output(output, pattern=None, regex=None, ignore_case=True,
                 invert=False, lines_before_match=None, lines_after_match=None,
                 results_as_string=False, join_result_string_on='\n',
                 strip_whitespace=False, no_filename=False, line_number=False,
-                only_matching=False, byte_offset=False, extra_pipe=None,
-                show=False):
+                only_matching=False, byte_offset=False, suppress_errors=True,
+                extra_pipe=None, show=False):
     """Use grep to match lines of output against pattern
 
     - output: some output you would be piping to grep in a shell environment
@@ -119,6 +124,9 @@ def grep_output(output, pattern=None, regex=None, ignore_case=True,
       line of output
         - only applied when using pattern, not regex
         - if `only_matching=True`, print the offset of the matching part itself
+    - suppress_errors: if True, suppress error messages about nonexistent or
+      unreadable files
+        - only applied when using pattern, not regex
     - extra_pipe: string containing other command(s) to pipe grepped output to
         - only applied when using pattern, not regex
     - show: if True, show the `grep` command before executing
@@ -161,7 +169,8 @@ def grep_output(output, pattern=None, regex=None, ignore_case=True,
                 no_filename=no_filename,
                 line_number=line_number,
                 only_matching=only_matching,
-                byte_offset=byte_offset
+                byte_offset=byte_offset,
+                suppress_errors=suppress_errors
             )
 
             cmd = 'echo {} | grep {}'.format(repr(output), grep_args)
@@ -199,7 +208,8 @@ def grep_path(pattern, path='', recursive=True, ignore_case=True, invert=False,
               exclude_files=None, exclude_dirs=None, results_as_string=False,
               join_result_string_on='\n', strip_whitespace=False,
               no_filename=False, line_number=False, only_matching=False,
-              byte_offset=False, extra_pipe=None, color=False, show=False):
+              byte_offset=False, suppress_errors=True, extra_pipe=None,
+              color=False, show=False):
     """Use grep to match lines in files at a path against pattern
 
     - pattern: grep pattern string (extended `-E` style allowed)
@@ -228,6 +238,8 @@ def grep_path(pattern, path='', recursive=True, ignore_case=True, invert=False,
     - byte_offset: if True, print the byte offset within the input file before each
       line of output
         - if `only_matching=True`, print the offset of the matching part itself
+    - suppress_errors: if True, suppress error messages about nonexistent or
+      unreadable files
     - extra_pipe: string containing other command(s) to pipe grepped output to
     - color: if True, will invoke the generated grep command with `bh.run` (output
       will not be captured)
@@ -249,7 +261,8 @@ def grep_path(pattern, path='', recursive=True, ignore_case=True, invert=False,
         no_filename=no_filename,
         line_number=line_number,
         only_matching=only_matching,
-        byte_offset=byte_offset
+        byte_offset=byte_offset,
+        suppress_errors=suppress_errors
     )
 
     if results_as_string is True or strip_whitespace is True:
@@ -295,8 +308,8 @@ def grep_path(pattern, path='', recursive=True, ignore_case=True, invert=False,
 
 def grep_path_count(pattern, path='', recursive=True, ignore_case=True,
                     invert=False, exclude_files=None, exclude_dirs=None,
-                    results_as_string=False, join_result_string_on='\n',
-                    show=False):
+                    suppress_errors=True, results_as_string=False,
+                    join_result_string_on='\n', show=False):
     """Use grep to count the match lines in files at a path against pattern
 
     - pattern: grep pattern string (extended `-E` style allowed)
@@ -309,6 +322,8 @@ def grep_path_count(pattern, path='', recursive=True, ignore_case=True,
         - or string separated by any of , ; |
     - exclude_dirs: list of dir names and patterns to exclude from searching
         - or string separated by any of , ; |
+    - suppress_errors: if True, suppress error messages about nonexistent or
+      unreadable files
     - results_as_string: if True, return a string instead of a list of tuples
     - join_result_string_on: character or string to join a list of strings on
         - only applied if `results_as_string=True`
@@ -324,7 +339,8 @@ def grep_path_count(pattern, path='', recursive=True, ignore_case=True,
         ignore_case=ignore_case,
         invert=invert,
         exclude_files=exclude_files,
-        exclude_dirs=exclude_dirs
+        exclude_dirs=exclude_dirs,
+        suppress_errors=suppress_errors
     )
     grep_args += ' -c'
 
@@ -359,8 +375,8 @@ def grep_path_count(pattern, path='', recursive=True, ignore_case=True,
 
 def grep_path_count_dirs(pattern, path='', recursive=True, ignore_case=True,
                          invert=False, exclude_files=None, exclude_dirs=None,
-                         results_as_string=False, join_result_string_on='\n',
-                         show=False):
+                         suppress_errors=True, results_as_string=False,
+                         join_result_string_on='\n', show=False):
     """Use grep to count match lines in files against pattern, aggregated by dir
 
     - pattern: grep pattern string (extended `-E` style allowed)
@@ -373,6 +389,8 @@ def grep_path_count_dirs(pattern, path='', recursive=True, ignore_case=True,
         - or string separated by any of , ; |
     - exclude_dirs: list of dir names and patterns to exclude from searching
         - or string separated by any of , ; |
+    - suppress_errors: if True, suppress error messages about nonexistent or
+      unreadable files
     - results_as_string: if True, return a string instead of a list of tuples
     - join_result_string_on: character or string to join a list of strings on
         - only applied if `results_as_string=True`
@@ -388,7 +406,8 @@ def grep_path_count_dirs(pattern, path='', recursive=True, ignore_case=True,
         ignore_case=ignore_case,
         invert=invert,
         exclude_files=exclude_files,
-        exclude_dirs=exclude_dirs
+        exclude_dirs=exclude_dirs,
+        suppress_errors=suppress_errors
     )
     grep_args += ' -c'
 
@@ -428,7 +447,8 @@ def grep_path_count_dirs(pattern, path='', recursive=True, ignore_case=True,
 def grep_select_vim(pattern, path='', recursive=True, ignore_case=True,
                     invert=False, lines_before_match=None,
                     lines_after_match=None, exclude_files=None,
-                    exclude_dirs=None, open_all_together=False):
+                    exclude_dirs=None, suppress_errors=True,
+                    open_all_together=False):
     """Use grep to find files, then present a menu of results and line numbers
 
     - pattern: grep pattern string (extended `-E` style allowed)
@@ -445,6 +465,8 @@ def grep_select_vim(pattern, path='', recursive=True, ignore_case=True,
         - or string separated by any of , ; |
     - exclude_dirs: list of dir names and patterns to exclude from searching
         - or string separated by any of , ; |
+    - suppress_errors: if True, suppress error messages about nonexistent or
+      unreadable files
     - open_all_together: if True, don't open each individual file to the line
       number, just open them all in the same vim session
 
@@ -464,6 +486,7 @@ def grep_select_vim(pattern, path='', recursive=True, ignore_case=True,
         lines_after_match=lines_after_match,
         exclude_files=exclude_files,
         exclude_dirs=exclude_dirs,
+        suppress_errors=suppress_errors,
         line_number=True
     )
 
