@@ -80,6 +80,8 @@ def _prep_common_grep_args(pattern=None, ignore_case=True, invert=False,
 
     if '(' in pattern and '|' in pattern and ')' in pattern:
         grep_args += ' -E {}'.format(repr(pattern))
+    elif '{' in pattern and '}' in pattern:
+        grep_args += ' -E {}'.format(repr(pattern))
     else:
         grep_args += ' {}'.format(repr(pattern))
 
