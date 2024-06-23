@@ -281,6 +281,14 @@ def grep_path(pattern, path='', recursive=True, ignore_case=True, invert=False,
     if extra_pipe:
         cmd += ' | {}'.format(extra_pipe)
 
+    # Respect any given word boundary specifiers
+    cmd = cmd.replace('\\x08', '\\b')
+    cmd = cmd.replace('\\\\B', '\\B')
+
+    # Respect any given alphanumeric specifiers
+    cmd = cmd.replace('\\\\w', '\\w')
+    cmd = cmd.replace('\\\\W', '\\W')
+
     if color:
         return bh.run(cmd, show=show)
 
