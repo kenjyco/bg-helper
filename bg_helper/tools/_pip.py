@@ -37,13 +37,22 @@ PATH_TO_SITE_PACKAGES = [
     if p.endswith('site-packages')
 ][0]
 
-def installed_packages():
-    """Return a dict of installed packages from importlib_metadata.distributions
+
+def installed_packages(name_only=False):
+    """Return a dict or list of installed packages from importlib_metadata.distributions
+
+    - name_only: if True, return a list of package names only
+
+    The dict values are the versions of the packages
     """
-    return {
-        dist.metadata['Name']: dist.version
-        for dist in distributions()
-    }
+    if name_only:
+        results = [dist.metadata['Name'] for dist in distributions()]
+    else:
+        results = {
+            dist.metadata['Name']: dist.version
+            for dist in distributions()
+        }
+    return results
 
 
 def installed_packages_by_dir():
