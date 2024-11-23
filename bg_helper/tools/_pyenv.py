@@ -17,8 +17,8 @@ _pyenv_repo_path = fh.abspath('~/.pyenv')
 if not os.path.isdir(_pyenv_repo_path):
     __all__ = []
 
-_rx_ignore_version_names = re.compile(r'.*-(dev|src|latest)$')
 _rx_version_strings = re.compile(r'(?P<type_prefix>[a-z][^-]+-)?(?P<major_minor>\d+\.\d+).*')
+_rx_non_release = re.compile(r'.*(\d+.*[a-z]+|-dev$|-latest$)')
 
 PATH_TO_PYENV = os.path.join(_pyenv_repo_path, 'bin', 'pyenv')
 if not os.path.isfile(PATH_TO_PYENV):
@@ -48,12 +48,17 @@ def pyenv_update(show=True):
         return bh.tools.git_repo_update(_pyenv_repo_path, show=show)
 
 
-def pyenv_get_installable_versions(only_py3=True, only_latest_per_group=True):
+def pyenv_get_installable_versions(only_py3=True, only_latest_per_group=True,
+                                   only_released=True, only_non_released=False):
     """Return a list of Python versions that can be installed to ~/.pyenv/versions
 
     - only_py3: if True, only list standard Python 3.x versions
-    - only_latest_per_group: if True, only include the latest version per group (non-dev)
+    - only_latest_per_group: if True, only include the latest version per group
+    - only_released: if True, only include released versions, not alpha/beta/rc/dev/src
+    - only_non_released: if True, only include non-released versions, like alpha/beta/rc/dev/src
     """
+    if only_non_released:
+        only_released = False
     cmd = '{} install --list'.format(PATH_TO_PYENV)
     output = bh.run_output(cmd)
     if only_py3:
@@ -61,13 +66,24 @@ def pyenv_get_installable_versions(only_py3=True, only_latest_per_group=True):
     else:
         results = ih.splitlines_and_strip(output)
 
+    if only_released:
+        results = [
+            version
+            for version in results
+            if not _rx_non_release.match(version)
+        ]
+    elif only_non_released:
+        results = [
+            version
+            for version in results
+            if _rx_non_release.match(version)
+        ]
+
     if only_latest_per_group:
         last_full_version_string = ''
         last_major_minor = ''
         subset = []
         for version in results:
-            if _rx_ignore_version_names.match(version):
-                continue
             match = _rx_version_strings.match(version)
             if match:
                 major_minor = match.groupdict()['major_minor']
