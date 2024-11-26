@@ -138,7 +138,7 @@ def grep_output(output, pattern=None, regex=None, ignore_case=True,
     """
     results = []
     if regex:
-        if type(regex) != re.Pattern:
+        if not hasattr(regex, 'match'):
             if ignore_case:
                 regex = re.compile(r'{}'.format(regex), re.IGNORECASE)
             else:
