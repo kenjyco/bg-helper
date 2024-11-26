@@ -1,6 +1,7 @@
 __all__ = [
     'PATH_TO_PYENV', 'pyenv_install_python_version', 'pyenv_update',
-    'pyenv_get_installable_versions', 'pyenv_get_versions'
+    'pyenv_get_installable_versions', 'pyenv_select_python_versions_to_install',
+    'pyenv_get_versions'
 ]
 
 import os.path
@@ -110,6 +111,30 @@ def pyenv_get_installable_versions(only_py3=True, only_latest_per_group=True,
             results = subset
 
     return results
+
+
+def pyenv_select_python_versions_to_install(only_py3=True, only_latest_per_group=True,
+                                            only_released=True, only_non_released=False):
+    """Select versions of Python to install with pyenv
+
+    - only_py3: if True, only select from standard Python 3.x versions
+    - only_latest_per_group: if True, only include the latest version per group
+    - only_released: if True, only include released versions, not alpha/beta/rc/dev/src
+    - only_non_released: if True, only include non-released versions, like alpha/beta/rc/dev/src
+
+    See: pyenv_get_installable_versions
+    """
+    versions = pyenv_get_installable_versions(
+        only_py3=only_py3,
+        only_latest_per_group=only_latest_per_group,
+        only_released=only_released,
+        only_non_released=only_non_released
+    )
+
+    prompt = 'Select versions of Python to install with pyenv'
+    selected = ih.make_selections(versions, prompt=prompt)
+    if selected:
+       return  pyenv_install_python_version(selected)
 
 
 def pyenv_get_versions():
