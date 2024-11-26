@@ -1,7 +1,8 @@
 __all__ = [
     'IN_A_VENV', 'PATH_TO_PIP', 'PATH_TO_SITE_PACKAGES', 'installed_packages',
     'installed_packages_by_dir', 'installed_packages_non_site_packages',
-    'pip_freeze', 'pip_install_editable', 'pip_extras'
+    'pip_freeze', 'pip_install_editable', 'pip_extras', 'pip_version',
+    'pip_package_versions_available'
 ]
 
 import os.path
@@ -193,3 +194,102 @@ def pip_extras(package_name, venv_only=True, exception=True):
         pass
     else:
         return results
+
+
+def pip_version(pip_path='', venv_only=True, debug=False, exception=True):
+    """Return a tuple for the pip version (major.minor float, patch string)
+
+    - pip_path: absolute path to pip in a virtual environment
+        - use derived PATH_TO_PIP if not specified
+    - venv_only: if True, only run pip if it's in a venv
+    - debug: if True, insert breakpoint right before subprocess.check_output
+    - exception: if True, raise Exception if pip command has an error
+    """
+    if pip_path:
+        venv_only = False
+    elif PATH_TO_PIP:
+        pip_path = PATH_TO_PIP
+    else:
+        message = 'No pip_path specified and derived PATH_TO_PIP is empty'
+        if exception:
+            raise Exception(message)
+        print(message)
+        return
+    if venv_only and not IN_A_VENV:
+        message = 'Not in a venv'
+        if exception:
+            raise Exception(message)
+        print(message)
+        return
+    common_kwargs = dict(debug=debug, exception=exception)
+    cmd = "{} --version".format(pip_path)
+    output = bh.run_output(cmd, **common_kwargs)
+    version_match = bh.tools.grep_output(output, regex='pip (\S+) from.*')
+    result = ih.string_to_version_tuple(version_match[0])
+    return result
+
+
+def pip_package_versions_available(package_name, pip_path='', venv_only=True,
+                                   debug=False, exception=True):
+    """Return a list of versions available on pypi for the given package
+
+    - package_name: name of the package on pypi.org
+    - pip_path: absolute path to pip in a virtual environment
+        - use derived PATH_TO_PIP if not specified
+    - venv_only: if True, only run pip if it's in a venv
+    - debug: if True, insert breakpoint right before subprocess.check_output
+    - exception: if True, raise Exception if pip command has an error
+
+    See: https://stackoverflow.com/a/26664162
+    """
+    if pip_path:
+        venv_only = False
+    elif PATH_TO_PIP:
+        pip_path = PATH_TO_PIP
+    else:
+        message = 'No pip_path specified and derived PATH_TO_PIP is empty'
+        if exception:
+            raise Exception(message)
+        print(message)
+        return
+    if venv_only and not IN_A_VENV:
+        message = 'Not in a venv'
+        if exception:
+            raise Exception(message)
+        print(message)
+        return
+    version, _ = pip_version(pip_path=pip_path)
+
+    results = []
+    if version >= 21.2:
+        cmd = "{} index versions {}".format(pip_path, package_name)
+        output = bh.run_output(cmd, debug=debug, exception=False)
+        versions_string = bh.tools.grep_output(output, regex='Available versions: (.*)')
+        if versions_string:
+            results = versions_string[0].split(', ')
+        elif exception:
+            raise Exception(output)
+        else:
+            print(output)
+    elif 21.1 > version >= 20.3:
+        cmd = "{} install --use-deprecated=legacy-resolver {}==".format(pip_path, package_name)
+        output = bh.run_output(cmd, debug=debug, exception=False)
+        versions_string = bh.tools.grep_output(output, regex='.*from versions: (.*)\)')
+        if versions_string:
+            results = sorted(versions_string[0].split(', '), reverse=True)
+        elif exception:
+            raise Exception(output)
+        else:
+            print(output)
+    elif version >= 9.0:
+        cmd = "{} install {}==".format(pip_path, package_name)
+        output = bh.run_output(cmd, debug=debug, exception=False)
+        versions_string = bh.tools.grep_output(output, regex='.*from versions: (.*)\)')
+        if versions_string:
+            results = sorted(versions_string[0].split(', '), reverse=True)
+        elif exception:
+            raise Exception(output)
+        else:
+            print(output)
+
+    return results
