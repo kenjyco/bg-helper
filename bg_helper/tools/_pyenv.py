@@ -25,13 +25,24 @@ if not os.path.isfile(PATH_TO_PYENV):
     PATH_TO_PYENV = ''
 
 
-def pyenv_install_python_version(version):
-    """Use pyenv to install a version of Python
+def pyenv_install_python_version(*versions):
+    """Use pyenv to install versions of Python
+
+    - versions: a list of versions to install
+        - can also be a list of versions contained in a single string, separated
+          by one of , ; |
     """
-    cmd = '{} install {}'.format(PATH_TO_PYENV, version)
-    ret_code = bh.run(cmd, stderr_to_stdout=True, show=True)
-    if ret_code == 0:
-        return True
+    results = []
+    versions = ih.get_list_from_arg_strings(versions)
+
+    for version in versions:
+        cmd = '{} install {}'.format(PATH_TO_PYENV, version)
+        ret_code = bh.run(cmd, stderr_to_stdout=True, show=True)
+        if ret_code == 0:
+            results.append((version, True))
+        else:
+            results.append((version, False))
+    return results
 
 
 def pyenv_update(show=True):
