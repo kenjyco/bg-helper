@@ -284,6 +284,9 @@ def pip_package_versions_available(package_name, pip_path='', venv_only=True,
     elif version >= 9.0:
         cmd = "{} install {}==".format(pip_path, package_name)
         output = bh.run_output(cmd, debug=debug, exception=False)
+        if 'problem confirming the ssl certificate' in output:
+            cmd = "{} install --trusted-host pypi.python.org {}==".format(pip_path, package_name)
+            output = bh.run_output(cmd, debug=debug, exception=False)
         versions_string = bh.tools.grep_output(output, regex='.*from versions: (.*)\)')
         if versions_string:
             results = sorted(versions_string[0].split(', '), reverse=True)
