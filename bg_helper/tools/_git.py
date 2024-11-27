@@ -89,7 +89,7 @@ def git_repo_update(path='', debug=False, timeout=None, exception=True, show=Fal
         tracking_branch = git_current_tracking_branch(**common_kwargs)
         branch = git_current_branch(**common_kwargs)
         origin_url = git_origin_url()
-        print_msg(f'tracking_branch -> {tracking_branch}  branch -> {branch}  origin_url -> {origin_url}')
+        print_msg('tracking_branch -> {}  branch -> {}  origin_url -> {}'.format(tracking_branch, branch, origin_url))
         common_kwargs['exception'] = _exception
 
         if not origin_url:
