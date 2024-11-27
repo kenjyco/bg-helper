@@ -30,7 +30,7 @@ def run(cmd, stderr_to_stdout=False, debug=False, timeout=None, exception=False,
     try:
         if stderr_to_stdout:
             if debug:
-                breakpoint()
+                import pdb; pdb.set_trace()
             ret_code = subprocess.call(cmd, stderr=sys.stdout.buffer, timeout=timeout, shell=True)
             if exception and ret_code != 0:
                 raise Exception("The return code was {} (not 0) for {}".format(ret_code, repr(cmd)))
@@ -39,7 +39,7 @@ def run(cmd, stderr_to_stdout=False, debug=False, timeout=None, exception=False,
             error_buffer_path = '/tmp/error-buffer-{}.txt'.format(str(uuid.uuid4()))
             with open(error_buffer_path, 'w') as error_buf:
                 if debug:
-                    breakpoint()
+                    import pdb; pdb.set_trace()
                 ret_code = subprocess.call(cmd, stderr=error_buf, timeout=timeout, shell=True)
             if exception:
                 with open(error_buffer_path, 'r') as fp:
@@ -73,7 +73,7 @@ def run_output(cmd, strip=True, debug=False, timeout=None, exception=False, show
         print('\n$ {}'.format(cmd))
     try:
         if debug:
-            breakpoint()
+            import pdb; pdb.set_trace()
         output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True, timeout=timeout)
     except subprocess.CalledProcessError as e:
         output = e.output
