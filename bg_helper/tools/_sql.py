@@ -5,6 +5,11 @@ __all__ = [
 
 import bg_helper as bh
 try:
+    ModuleNotFoundError
+except NameError:
+    class ModuleNotFoundError(ImportError):
+        pass
+try:
     import sql_helper as sqh
 except (ImportError, ModuleNotFoundError):
     # sql-helper not installed

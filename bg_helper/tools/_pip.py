@@ -11,6 +11,11 @@ import sys
 import bg_helper as bh
 import input_helper as ih
 try:
+    ModuleNotFoundError
+except NameError:
+    class ModuleNotFoundError(ImportError):
+        pass
+try:
     from importlib_metadata import distributions, metadata, PackageNotFoundError
     no_metadata_warning_message = ''
 except (ImportError, ModuleNotFoundError):
