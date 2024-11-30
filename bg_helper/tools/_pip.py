@@ -202,7 +202,7 @@ def pip_extras(package_name, venv_only=True, exception=True):
 
 
 def pip_version(pip_path='', venv_only=True, debug=False, exception=True):
-    """Return a tuple for the pip version (major.minor float, patch string)
+    """Return a tuple for the pip version (major int, minor int, patch string)
 
     - pip_path: absolute path to pip in a virtual environment
         - use derived PATH_TO_PIP if not specified
@@ -263,10 +263,11 @@ def pip_package_versions_available(package_name, pip_path='', venv_only=True,
             raise Exception(message)
         print(message)
         return
-    version, _ = pip_version(pip_path=pip_path)
+    major, minor, _ = pip_version(pip_path=pip_path)
 
     results = []
-    if version >= 21.2:
+    if (major == 21 and minor >= 2) or major > 22:
+        # version >= 21.2
         cmd = "{} index versions {}".format(pip_path, package_name)
         output = bh.run_output(cmd, debug=debug, exception=False)
         versions_string = bh.tools.grep_output(output, regex='Available versions: (.*)')
@@ -276,7 +277,8 @@ def pip_package_versions_available(package_name, pip_path='', venv_only=True,
             raise Exception(output)
         else:
             print(output)
-    elif 21.1 > version >= 20.3:
+    elif ((major == 20 and minor >= 3) or (major == 21 and minor == 0)):
+        # 21.1 > version >= 20.3
         cmd = "{} install --use-deprecated=legacy-resolver {}==".format(pip_path, package_name)
         output = bh.run_output(cmd, debug=debug, exception=False)
         versions_string = bh.tools.grep_output(output, regex='.*from versions: (.*)\)')
@@ -286,7 +288,8 @@ def pip_package_versions_available(package_name, pip_path='', venv_only=True,
             raise Exception(output)
         else:
             print(output)
-    elif version >= 9.0:
+    elif major >= 9:
+        # version >= 9.0
         cmd = "{} install {}==".format(pip_path, package_name)
         output = bh.run_output(cmd, debug=debug, exception=False)
         if 'problem confirming the ssl certificate' in output:
