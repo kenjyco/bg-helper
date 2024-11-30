@@ -49,7 +49,7 @@ def pyenv_install_python_version(*versions):
 def pyenv_update(show=True):
     """Update pyenv
 
-    - show: if True,
+    - show: if True, show the command before executing
     """
     if sys.platform == 'darwin':
         # Should probably check to see if brew is installed first
