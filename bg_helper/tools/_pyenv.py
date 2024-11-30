@@ -3,8 +3,10 @@ __all__ = [
     'pyenv_get_installable_versions', 'pyenv_select_python_versions_to_install',
     'pyenv_get_versions', 'pyenv_path_to_python_version', 'pyenv_pip_versions',
     'pyenv_pip_package_versions_available',
+    'pyenv_create_venvs_for_py_versions_and_dep_versions'
 ]
 
+import itertools
 import os.path
 import re
 import sys
@@ -13,6 +15,7 @@ import fs_helper as fh
 import input_helper as ih
 from glob import glob
 from os import listdir, makedirs
+from shutil import rmtree
 
 
 _pyenv_repo_path = fh.abspath('~/.pyenv')
@@ -203,3 +206,154 @@ def pyenv_pip_package_versions_available(package_name, py_versions='', show=Fals
         if show:
             print('\n{} -> {}'.format(py_version, package_versions))
     return results
+
+
+def pyenv_create_venvs_for_py_versions_and_dep_versions(base_dir, py_versions='',
+                                                        pip_version='',
+                                                        pip_latest=False,
+                                                        wheel_version='',
+                                                        wheel_latest=False,
+                                                        clean=False,
+                                                        die=False,
+                                                        local_package_paths='',
+                                                        extra_packages='',
+                                                        dep_versions_dict=None):
+    """Create a combination of venvs for the given py_versions and dep_versions
+
+    - base_dir: path to directory where the venvs will be created
+    - py_versions: string containing Python versions to make venvs for separated
+      by any of , ; |
+        - if none specified, use all local versions returned from
+          pyenv_get_versions()
+    - pip_version: specific version of pip to install first
+    - pip_latest: if True, install latest version of pip
+        - ignored if pip_version specified
+    - wheel_version: specific version of wheel to install first
+    - wheel_latest: if True, install latest version of wheel
+        - ignored if wheel_version specified
+    - clean: if True, delete any existing venv that would be created if it exists
+    - die: if True, return if any part of venv creation or pip install fails
+    - local_package_paths: local paths to projects to install in "editable mode"
+        - may be a list or string of paths separated by one of , ; |
+    - extra_packages: string of extra packages to be installed in each venv
+        - may be a list or string of package names separated by one of , ; |
+        - package names may include version (i.e. package_name==version)
+    - dep_versions_dict: dict where keys are package names and values are specific versions
+        - versions may be a list or string of versions separated by one of , ; |
+    """
+    base_dir = fh.abspath(base_dir)
+    makedirs(base_dir, exist_ok=True)
+    py_versions = ih.get_list_from_arg_strings(py_versions)
+    local_package_paths = [
+        fh.abspath(local_path)
+        for local_path in ih.get_list_from_arg_strings(local_package_paths)
+    ]
+    extra_packages = ih.get_list_from_arg_strings(extra_packages)
+    if dep_versions_dict:
+        dep_names = sorted([name for name in dep_versions_dict])
+        dep_versions_lists = [
+            ih.string_to_list(dep_versions_dict[dep_name])
+            for dep_name in dep_names
+        ]
+        dep_versions_combinations = list(itertools.product(*dep_versions_lists))
+    if not py_versions:
+        py_versions = pyenv_get_versions()
+
+    initial_pip_cmd = ''
+    if pip_version:
+        initial_pip_cmd = 'pip=={}'.format(pip_version)
+    elif pip_latest:
+        initial_pip_cmd = '--upgrade pip'
+    if wheel_version:
+        initial_pip_cmd += ' wheel=={}'.format(wheel_version)
+    elif wheel_latest:
+        initial_pip_cmd += ' wheel'
+
+    main_pip_cmd_parts = []
+    if local_package_paths:
+        main_pip_cmd_parts = [
+            '-e {}'.format(repr(path))
+            for path in local_package_paths
+        ]
+    if extra_packages:
+        main_pip_cmd_parts += [repr(pkg) for pkg in extra_packages]
+
+    venvs_and_commands = []
+    for py_version in py_versions:
+        py_path = pyenv_path_to_python_version(py_version)
+        if not py_path:
+            pyenv_install_python_version(py_version)
+            py_path = pyenv_path_to_python_version(py_version)
+            if not py_path:
+                continue
+
+        py35_part = ''
+        if py_version.startswith('3.5.'):
+            py35_part = '--trusted-host pypi.python.org '
+
+        if not dep_versions_dict:
+            venv_name = 'venv_py{}'.format(py_version)
+            venv_path = os.path.join(base_dir, venv_name)
+            pip_path = os.path.join(venv_path, 'bin', 'pip')
+            cmd_pip_setup = ''
+            if initial_pip_cmd:
+                cmd_pip_setup = '{} install {}{}'.format(pip_path, py35_part, initial_pip_cmd)
+            if main_pip_cmd_parts:
+                cmd_pip_install = '{} install {}{}'.format(pip_path, py35_part, ' '.join(main_pip_cmd_parts))
+
+            venvs_and_commands.append({
+                'py_path': py_path,
+                'venv_path': venv_path,
+                'pip_path': pip_path,
+                'cmd_venv_create': '{} -m venv {}'.format(py_path, venv_path),
+                'cmd_pip_setup': cmd_pip_setup,
+                'cmd_pip_install': cmd_pip_install
+            })
+        else:
+            for dep_combination in dep_versions_combinations:
+                dep_dict = dict(zip(dep_names, dep_combination))
+                dep_parts = ['{}{}'.format(name, version) for name, version in sorted(dep_dict.items())]
+                venv_name = 'venv_py{}_'.format(py_version) + '_'.join(dep_parts)
+                venv_path = os.path.join(base_dir, venv_name.strip('_'))
+                pip_path = os.path.join(venv_path, 'bin', 'pip')
+
+                cmd_pip_setup = ''
+                if initial_pip_cmd:
+                    cmd_pip_setup = '{} install {}{}'.format(pip_path, py35_part, initial_pip_cmd)
+
+                cmd_parts = main_pip_cmd_parts + [
+                    '{}=={}'.format(name, version)
+                    for name, version in dep_dict.items()
+                ]
+                cmd_pip_install = '{} install {}{}'.format(pip_path, py35_part, ' '.join(cmd_parts))
+
+                venvs_and_commands.append({
+                    'py_path': py_path,
+                    'venv_path': venv_path,
+                    'pip_path': pip_path,
+                    'cmd_venv_create': '{} -m venv {}'.format(py_path, venv_path),
+                    'cmd_pip_setup': cmd_pip_setup,
+                    'cmd_pip_install': cmd_pip_install
+                })
+
+    for cmd_set in venvs_and_commands:
+        if clean and os.path.isdir(cmd_set['venv_path']):
+            rmtree(cmd_set['venv_path'])
+
+        if not os.path.isdir(cmd_set['venv_path']):
+            ret_code = bh.run(cmd_set['cmd_venv_create'], stderr_to_stdout=True, show=True)
+            if ret_code != 0:
+                rmtree(cmd_set['venv_path'])
+                if die:
+                    return
+            if cmd_set['cmd_pip_setup']:
+                ret_code = bh.run(cmd_set['cmd_pip_setup'], stderr_to_stdout=True, show=True)
+                if ret_code != 0:
+                    rmtree(cmd_set['venv_path'])
+                    if die:
+                        return
+            ret_code = bh.run(cmd_set['cmd_pip_install'], stderr_to_stdout=True, show=True)
+            if ret_code != 0:
+                rmtree(cmd_set['venv_path'])
+                if die:
+                    return
