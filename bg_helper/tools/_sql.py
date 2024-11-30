@@ -28,11 +28,11 @@ def sql_start_dev_containers_with_suffix(exception=True, show=True, wait=True):
     """
 
     """
-    raise NotImplementedError
+    pass
 
 
 def sql_start_test_containers_with_suffix(exception=True, show=True, wait=True):
     """
 
     """
-    raise NotImplementedError
+    pass
