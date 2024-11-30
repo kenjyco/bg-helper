@@ -11,7 +11,7 @@ import bg_helper as bh
 import fs_helper as fh
 import input_helper as ih
 from glob import glob
-from os import makedirs
+from os import listdir, makedirs
 
 
 _pyenv_repo_path = fh.abspath('~/.pyenv')
@@ -140,5 +140,4 @@ def pyenv_select_python_versions_to_install(only_py3=True, only_latest_per_group
 def pyenv_get_versions():
     """Return a list of Python versions locally installed to ~/.pyenv/versions
     """
-    cmd = 'ls -1 {}'.format(os.path.join(_pyenv_repo_path, 'versions'))
-    return ih.splitlines(bh.run_output(cmd))
+    return listdir(os.path.join(_pyenv_repo_path, 'versions'))
