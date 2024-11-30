@@ -1,7 +1,8 @@
 __all__ = [
     'PATH_TO_PYENV', 'pyenv_install_python_version', 'pyenv_update',
     'pyenv_get_installable_versions', 'pyenv_select_python_versions_to_install',
-    'pyenv_get_versions'
+    'pyenv_get_versions', 'pyenv_path_to_python_version', 'pyenv_pip_versions',
+    'pyenv_pip_package_versions_available',
 ]
 
 import os.path
@@ -141,3 +142,64 @@ def pyenv_get_versions():
     """Return a list of Python versions locally installed to ~/.pyenv/versions
     """
     return listdir(os.path.join(_pyenv_repo_path, 'versions'))
+
+
+def pyenv_path_to_python_version(version):
+    """Return path to the installed Python binary for the given version or None"""
+    py_path = os.path.join(_pyenv_repo_path, 'versions', version, 'bin', 'python')
+    if os.path.isfile(py_path):
+        return py_path
+
+
+def pyenv_pip_versions(py_versions=''):
+    """Return a dict of default pip versions for each given Python version
+
+    - py_versions: string containing locally installed Python versions
+      separated by any of , ; |
+        - if none specified, use all local versions returned from
+          pyenv_get_versions()
+
+    Calls pip_version
+    """
+    py_versions = ih.get_list_from_arg_strings(py_versions)
+    if not py_versions:
+        py_versions = pyenv_get_versions()
+
+    results = {}
+    for py_version in sorted(py_versions):
+        pip_path = os.path.join(_pyenv_repo_path, 'versions', py_version, 'bin', 'pip')
+        if not os.path.isfile(pip_path):
+            continue
+        results[py_version] = bh.tools.pip_version(pip_path=pip_path)
+    return results
+
+
+def pyenv_pip_package_versions_available(package_name, py_versions='', show=False):
+    """Return a dict of package versions available on pypi for the given package
+
+    - package_name: name of the package on pypi.org
+    - py_versions: string containing locally installed Python versions
+      separated by any of , ; |
+        - if none specified, use all local versions returned from
+          pyenv_get_versions()
+    - show: if True, display the results
+
+    Calls pip_package_versions_available
+    """
+    py_versions = ih.get_list_from_arg_strings(py_versions)
+    if not py_versions:
+        py_versions = pyenv_get_versions()
+
+    results = {}
+    for py_version in sorted(py_versions):
+        pip_path = os.path.join(_pyenv_repo_path, 'versions', py_version, 'bin', 'pip')
+        if not os.path.isfile(pip_path):
+            continue
+        package_versions = bh.tools.pip_package_versions_available(
+            package_name,
+            pip_path=pip_path
+        )
+        results[py_version] = package_versions
+        if show:
+            print('\n{} -> {}'.format(py_version, package_versions))
+    return results
