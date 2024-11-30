@@ -229,7 +229,7 @@ def pip_version(pip_path='', venv_only=True, debug=False, exception=True):
     common_kwargs = dict(debug=debug, exception=exception)
     cmd = "{} --version".format(pip_path)
     output = bh.run_output(cmd, **common_kwargs)
-    version_match = bh.tools.grep_output(output, regex='pip (\S+) from.*')
+    version_match = bh.tools.grep_output(output, regex=r'pip (\S+) from.*')
     result = ih.string_to_version_tuple(version_match[0])
     return result
 
@@ -270,7 +270,7 @@ def pip_package_versions_available(package_name, pip_path='', venv_only=True,
         # version >= 21.2
         cmd = "{} index versions {}".format(pip_path, package_name)
         output = bh.run_output(cmd, debug=debug, exception=False)
-        versions_string = bh.tools.grep_output(output, regex='Available versions: (.*)')
+        versions_string = bh.tools.grep_output(output, regex=r'Available versions: (.*)')
         if versions_string:
             results = versions_string[0].split(', ')
         elif exception:
@@ -281,7 +281,7 @@ def pip_package_versions_available(package_name, pip_path='', venv_only=True,
         # 21.1 > version >= 20.3
         cmd = "{} install --use-deprecated=legacy-resolver {}==".format(pip_path, package_name)
         output = bh.run_output(cmd, debug=debug, exception=False)
-        versions_string = bh.tools.grep_output(output, regex='.*from versions: (.*)\)')
+        versions_string = bh.tools.grep_output(output, regex=r'.*from versions: (.*)\)')
         if versions_string:
             results = sorted(versions_string[0].split(', '), reverse=True)
         elif exception:
@@ -295,7 +295,7 @@ def pip_package_versions_available(package_name, pip_path='', venv_only=True,
         if 'problem confirming the ssl certificate' in output:
             cmd = "{} install --trusted-host pypi.python.org {}==".format(pip_path, package_name)
             output = bh.run_output(cmd, debug=debug, exception=False)
-        versions_string = bh.tools.grep_output(output, regex='.*from versions: (.*)\)')
+        versions_string = bh.tools.grep_output(output, regex=r'.*from versions: (.*)\)')
         if versions_string:
             results = sorted(versions_string[0].split(', '), reverse=True)
         elif exception:

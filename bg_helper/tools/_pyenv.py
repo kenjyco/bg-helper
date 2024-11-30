@@ -74,7 +74,7 @@ def pyenv_get_installable_versions(only_py3=True, only_latest_per_group=True,
     cmd = '{} install --list'.format(PATH_TO_PYENV)
     output = bh.run_output(cmd)
     if only_py3:
-        results = bh.tools.grep_output(output, regex='^  (3.*)')
+        results = bh.tools.grep_output(output, regex=r'^  (3.*)')
     else:
         results = ih.splitlines_and_strip(output)
 
