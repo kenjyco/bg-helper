@@ -27,7 +27,11 @@ _rx_non_release = re.compile(r'.*(\d+.*[a-z]+|-dev$|-latest$)')
 
 PATH_TO_PYENV = os.path.join(_pyenv_repo_path, 'bin', 'pyenv')
 if not os.path.isfile(PATH_TO_PYENV):
-    PATH_TO_PYENV = ''
+    if os.path.isfile('/usr/local/bin/pyenv'):
+        # Mac install does not have a bin directory in ~/.pyenv (nor is it a git repo)
+        PATH_TO_PYENV = '/usr/local/bin/pyenv'
+    else:
+        PATH_TO_PYENV = ''
 
 
 def pyenv_install_python_version(*versions):
