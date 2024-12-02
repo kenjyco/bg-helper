@@ -304,6 +304,8 @@ def pyenv_create_venvs_for_py_versions_and_dep_versions(base_dir, py_versions=''
                 cmd_pip_setup = '{} install {}{}'.format(pip_path, py35_part, initial_pip_cmd)
             if main_pip_cmd_parts:
                 cmd_pip_install = '{} install {}{}'.format(pip_path, py35_part, ' '.join(main_pip_cmd_parts))
+            else:
+                cmd_pip_install = ''
 
             venvs_and_commands.append({
                 'py_path': py_path,
@@ -356,8 +358,9 @@ def pyenv_create_venvs_for_py_versions_and_dep_versions(base_dir, py_versions=''
                     rmtree(cmd_set['venv_path'])
                     if die:
                         return
-            ret_code = bh.run(cmd_set['cmd_pip_install'], stderr_to_stdout=True, show=True)
-            if ret_code != 0:
-                rmtree(cmd_set['venv_path'])
-                if die:
-                    return
+            if cmd_set['cmd_pip_install']:
+                ret_code = bh.run(cmd_set['cmd_pip_install'], stderr_to_stdout=True, show=True)
+                if ret_code != 0:
+                    rmtree(cmd_set['venv_path'])
+                    if die:
+                        return
