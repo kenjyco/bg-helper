@@ -270,7 +270,6 @@ def git_current_tracking_branch(path='', debug=False, timeout=None,
     return result
 
 
-
 def git_last_tag(path='', debug=False, timeout=None, exception=False, show=False):
     """Return the most recent tag made
 
