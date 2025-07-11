@@ -495,7 +495,7 @@ Docker functions provide container lifecycle management with service-specific sh
   - Returns: Exit code
   - Internal calls: `docker_shell()`
 
-- **`docker_mongo_start(name, version='4.4', port=27000, username='mongouser', password='some.pass', data_dir=None, interactive=False, rm=False, exception=False, show=False, force=False)`** - Start or create mongo container
+- **`docker_mongo_start(name, version='4.4', port=27000, username='mongouser', password='some.pass', data_dir=None, interactive=False, rm=False, exception=False, show=False, force=False, wait=False, sleeptime=2)`** - Start or create mongo container
   - `name`: Name for the container
   - `version`: Mongo image version
   - `port`: Port to map into the container
@@ -507,6 +507,8 @@ Docker functions provide container lifecycle management with service-specific sh
   - `exception`: Raise exception if docker has error response and True
   - `show`: Show the docker commands and output if True
   - `force`: Stop the container and remove it before re-creating if True
+  - `wait`: Don't return until mongo is able to accept connections if True
+  - `sleeptime`: If wait is True, sleep this number of seconds before checks
   - Returns: Boolean success status
   - Internal calls: `docker_start_or_run()`
 
@@ -515,6 +517,13 @@ Docker functions provide container lifecycle management with service-specific sh
   - `show`: Show the docker command and output if True
   - Returns: Exit code
   - Internal calls: `docker_container_env_vars()`, `docker_shell()`
+
+- **`docker_mongo_wait(name, sleeptime=2, show=False)`** - Wait for mongo on an existing container (will be started if stopped)
+  - `name`: Name of the container
+  - `sleeptime`: Time to sleep between checks
+  - `show`: Show the docker command and output if True
+  - Returns: None (blocks until postgres is ready)
+  - Internal calls: `docker_container_env_vars()`, `docker_exec_wait()`
 
 - **`docker_postgres_start(name, version='13-alpine', port=5400, username='postgresuser', password='some.pass', db='postgresdb', data_dir=None, interactive=False, rm=False, exception=False, show=False, force=False, wait=False, sleeptime=2)`** - Start or create postgres container
   - `name`: Name for the container

@@ -2,8 +2,8 @@ __all__ = [
     'docker_ok', 'docker_stop', 'docker_start_or_run', 'docker_container_id',
     'docker_container_inspect', 'docker_container_config', 'docker_container_env_vars',
     'docker_logs', 'docker_exec', 'docker_exec_wait', 'docker_shell', 'docker_cleanup_volumes',
-    'docker_redis_start', 'docker_redis_cli', 'docker_mongo_start',
-    'docker_mongo_cli', 'docker_postgres_start', 'docker_postgres_cli', 'docker_postgres_wait',
+    'docker_redis_start', 'docker_redis_cli', 'docker_mongo_start', 'docker_mongo_cli',
+    'docker_mongo_wait', 'docker_postgres_start', 'docker_postgres_cli', 'docker_postgres_wait',
     'docker_mysql_start', 'docker_mysql_cli', 'docker_mysql_wait',
     'docker_alpine_start', 'docker_ubuntu_start', 'docker_fedora_start'
 ]
@@ -413,7 +413,7 @@ def docker_redis_cli(name, show=False):
 
 def docker_mongo_start(name, version='4.4', port=27000, username='mongouser',
                        password='some.pass', data_dir=None, interactive=False, rm=False,
-                       exception=False, show=False, force=False):
+                       exception=False, show=False, force=False, wait=False, sleeptime=2):
     """Start or create mongo container
 
     - name: name for the container
@@ -428,6 +428,8 @@ def docker_mongo_start(name, version='4.4', port=27000, username='mongouser',
     - exception: if True and docker has an error response, raise an exception
     - show: if True, show the docker commands and output
     - force: if True, stop the container and remove it before re-creating
+    - wait: if True, don't return until mongo is able to accept connections
+    - sleeptime: if wait is True, sleep this number of seconds before checks
 
     See: https://hub.docker.com/_/mongo for image versions ("supported tags")
     """
@@ -441,7 +443,8 @@ def docker_mongo_start(name, version='4.4', port=27000, username='mongouser',
         volumes = '{}:/data/db'.format(data_dir)
     else:
         volumes = ''
-    return docker_start_or_run(
+
+    result = docker_start_or_run(
         name,
         image='mongo:{}'.format(version),
         ports='{}:27017'.format(port),
@@ -455,6 +458,11 @@ def docker_mongo_start(name, version='4.4', port=27000, username='mongouser',
         force=force
     )
 
+    if wait and result is not False:
+        docker_mongo_wait(name, sleeptime=sleeptime, show=show)
+
+    return result
+
 
 def docker_mongo_cli(name, show=False):
     """Start mongo on an existing container (will be started if stopped)
@@ -467,6 +475,25 @@ def docker_mongo_cli(name, show=False):
     password = env_vars.get('MONGO_INITDB_ROOT_PASSWORD')
     cmd = 'mongo --username {} --password {}'.format(username, password)
     return docker_shell(name, shell=cmd, show=show)
+
+
+def docker_mongo_wait(name, sleeptime=2, show=False):
+    """Wait for mongo on an existing container (will be started if stopped)
+
+    - name: name of the container
+    - sleeptime: time to sleep between checks
+    - show: if True, show the docker command and output
+    """
+    env_vars = docker_container_env_vars(name)
+    username = env_vars.get('MONGO_INITDB_ROOT_USERNAME')
+    password = env_vars.get('MONGO_INITDB_ROOT_PASSWORD')
+    cmd = 'mongo --username {} --password {} --eval "db.adminCommand(\'ping\')"'.format(username, password)
+    return docker_exec_wait(
+        name,
+        command=cmd,
+        sleeptime=sleeptime,
+        show=show
+    )
 
 
 def docker_postgres_start(name, version='13-alpine', port=5400, username='postgresuser',
