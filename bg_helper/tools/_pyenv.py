@@ -30,6 +30,9 @@ if not os.path.isfile(PATH_TO_PYENV):
     if os.path.isfile('/usr/local/bin/pyenv'):
         # Mac install does not have a bin directory in ~/.pyenv (nor is it a git repo)
         PATH_TO_PYENV = '/usr/local/bin/pyenv'
+    elif os.path.isfile('/opt/homebrew/bin/pyenv'):
+        # Mac install does not have a bin directory in ~/.pyenv (nor is it a git repo)
+        PATH_TO_PYENV = '/opt/homebrew/bin/pyenv'
     else:
         PATH_TO_PYENV = ''
 
