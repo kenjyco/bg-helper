@@ -32,11 +32,19 @@ setup(
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'Programming Language :: Python',
         'Programming Language :: Unix Shell',
         'Topic :: Database',
         'Topic :: Software Development :: Libraries',
         'Topic :: Utilities',
     ],
-    keywords=['background', 'shell', 'git', 'ssh', 'docker', 'redis', 'mongodb', 'postgres', 'postgresql', 'mysql', 'helper', 'kenjyco']
+    keywords=['background', 'shell', 'git', 'ssh', 'docker', 'pyenv', 'redis', 'mongodb', 'postgres', 'postgresql', 'mysql', 'helper', 'kenjyco']
 )
